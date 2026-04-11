@@ -1,0 +1,223 @@
+# ─── Secrets & environment ──────────────────────────────────────────────
+# Never commit real credentials. Only .env.example (templates) are tracked.
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+.secrets/
+
+# ─── Node / frontend ────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+.npm/
+.yarn/
+.pnpm-store/
+bun.lockb
+
+# Build outputs — anchored to root so we don't ignore subdirs named "build" under src
+/dist/
+/dist-ssr/
+/build/
+/out/
+/.next/
+/.nuxt/
+/.cache/
+/.parcel-cache/
+/.turbo/
+/.vite/
+*.tsbuildinfo
+
+# Test & coverage
+coverage/
+.nyc_output/
+.vitest/
+__snapshots__/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─── Python / backend ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Python packaging artifacts — anchored under backend/ so src/lib is safe
+backend/build/
+backend/develop-eggs/
+backend/downloads/
+backend/eggs/
+backend/.eggs/
+backend/lib/
+backend/lib64/
+backend/parts/
+backend/sdist/
+backend/var/
+backend/wheels/
+backend/share/python-wheels/
+backend/*.egg-info/
+backend/*.egg
+backend/.installed.cfg
+backend/MANIFEST
+
+# Virtual envs
+.venv/
+venv/
+ENV/
+env/
+.virtualenv/
+
+# Type checkers & linters
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+.pylintrc.local
+
+# Pytest
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ─── Bioinformatics / scientific data ───────────────────────────────────
+# Reference databases are huge and downloaded by a pinned script.
+backend/data/references/
+backend/data/demo/
+backend/data/cache/
+
+# Per-job workspaces and outputs (transient, not source)
+backend/workspaces/
+backend/outputs/
+workspaces/
+outputs/
+
+# Raw sequencing files (never committed — tracked via SHA in provenance)
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.fasta
+*.fa
+*.fna
+*.ffn
+*.faa
+*.frn
+*.fasta.gz
+*.fa.gz
+*.sam
+*.bam
+*.cram
+*.vcf
+*.vcf.gz
+*.bed.gz
+*.gff.gz
+*.gbk
+
+# BLAST / vsearch binary indexes
+*.ndb
+*.nhr
+*.nin
+*.njs
+*.not
+*.nsq
+*.ntf
+*.nto
+*.nhd
+*.nhi
+*.udb
+*.sdb
+
+# QIIME2 / BIOM artifacts produced by jobs (not fixtures)
+backend/outputs/*.qza
+backend/outputs/*.qzv
+backend/outputs/*.biom
+
+# Keep small fixture data (< 5 MB real truncated subsets) if we explicitly add them
+!backend/tests/fixtures/**
+
+# ─── Infrastructure & Docker ────────────────────────────────────────────
+# Local volumes from docker-compose
+minio_data/
+postgres_data/
+redis_data/
+pgadmin_data/
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Docker build artifacts
+.docker/
+
+# ─── IDEs & editors ─────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.shared.json
+.idea/
+.claude/
+.cursor/
+.aider*
+*.iml
+*.ipr
+*.iws
+.fleet/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*.swn
+*~
+*.bak
+*.orig
+
+# ─── OS-level cruft ─────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ─── Temporary / misc ───────────────────────────────────────────────────
+*.tmp
+*.temp
+*.old
+*.pid
+*.seed
+*.pid.lock
+.cache/
+tmp/
+temp/
+
+# Old scaffolding / legacy dumps (from the Phase 0 cleanup)
+dump/
+*_Backup/
+*_backup/
+eDNA_Dump/
+
+# Vite temp files
+*.timestamp-*
