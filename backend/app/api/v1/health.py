@@ -20,6 +20,8 @@ from sqlalchemy import text
 
 from app.core.config import get_settings
 from app.db.session import engine
+from app.services.queue import get_redis
+from app.services.storage import get_storage
 
 router = APIRouter(tags=["health"])
 
@@ -60,7 +62,7 @@ async def health() -> HealthResponse:
     summary="Readiness probe",
 )
 async def ready() -> ReadinessResponse:
-    """Readiness probe — verifies Postgres (and, in Phase 1f+, Redis + MinIO).
+    """Readiness probe — verifies Postgres, Redis, and MinIO.
 
     Always returns HTTP 200 with a per-component status map so dashboards
     can parse it cheaply. Callers should inspect the ``status`` field
@@ -75,6 +77,22 @@ async def ready() -> ReadinessResponse:
         checks["postgres"] = {"status": "ok"}
     except Exception as exc:  # noqa: BLE001 — all errors map to a degraded check
         checks["postgres"] = {"status": "fail", "error": str(exc)}
+
+    # Redis
+    try:
+        redis_client = get_redis()
+        pong = await redis_client.ping()
+        checks["redis"] = {"status": "ok" if pong else "fail"}
+    except Exception as exc:  # noqa: BLE001
+        checks["redis"] = {"status": "fail", "error": str(exc)}
+
+    # MinIO
+    try:
+        storage = get_storage()
+        storage.ensure_bucket()
+        checks["minio"] = {"status": "ok", "bucket": storage.bucket}
+    except Exception as exc:  # noqa: BLE001
+        checks["minio"] = {"status": "fail", "error": str(exc)}
 
     overall = "ok" if all(c["status"] == "ok" for c in checks.values()) else "degraded"
     return ReadinessResponse(status=overall, checks=checks)

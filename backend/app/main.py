@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app import __version__
-from app.api.v1 import health
+from app.api.v1 import auth, health, jobs, samples, ws
 from app.core.config import get_settings
 from app.core.logging import (
     bind_request_context,
@@ -25,6 +25,7 @@ from app.core.logging import (
     get_logger,
 )
 from app.db.session import dispose_engine
+from app.services.queue import close_redis
 
 log = get_logger(__name__)
 
@@ -48,6 +49,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         yield
     finally:
         log.info("application.shutdown")
+        await close_redis()
         await dispose_engine()
 
 
@@ -141,9 +143,15 @@ def create_app() -> FastAPI:
         )
 
     # ─── Routes ────────────────────────────────────────────────────────
-    # `/health` and `/ready` live at the root so infra probes don't need
-    # to know the v1 prefix.
+    # `/health`, `/ready`, and `/ws/*` live at the root so infra probes
+    # and browser WebSocket clients don't need to know the v1 prefix.
     app.include_router(health.router)
+    app.include_router(ws.router)
+
+    # REST resources are namespaced under /api/v1/…
+    app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
+    app.include_router(samples.router, prefix=settings.API_V1_PREFIX)
+    app.include_router(jobs.router, prefix=settings.API_V1_PREFIX)
 
     return app
 

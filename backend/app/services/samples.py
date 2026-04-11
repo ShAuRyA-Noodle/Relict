@@ -1,0 +1,146 @@
+"""Sample service — upload raw FASTQ, persist metadata, link to a job."""
+from __future__ import annotations
+
+import uuid
+from typing import BinaryIO
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.config import get_settings
+from app.core.logging import get_logger
+from app.db.models import Job, JobStatus, Sample, User
+from app.services.jobs import enqueue_job
+from app.services.queue import publish_job_event
+from app.services.storage import StoredObject, get_storage
+
+log = get_logger(__name__)
+
+
+class SampleError(Exception):
+    """Base class for sample-service errors."""
+
+
+class UnsupportedSampleFormat(SampleError):
+    pass
+
+
+class EmptySample(SampleError):
+    pass
+
+
+class SampleTooLarge(SampleError):
+    pass
+
+
+# ─── Validation ─────────────────────────────────────────────────────────
+
+
+def _check_filename(filename: str) -> None:
+    settings = get_settings()
+    lower = filename.lower()
+    if not any(lower.endswith(suffix) for suffix in settings.ALLOWED_UPLOAD_SUFFIXES):
+        allowed = ", ".join(settings.ALLOWED_UPLOAD_SUFFIXES)
+        msg = f"Unsupported file extension. Allowed: {allowed}"
+        raise UnsupportedSampleFormat(msg)
+
+
+# ─── Orchestration ──────────────────────────────────────────────────────
+
+
+async def upload_sample(
+    session: AsyncSession,
+    *,
+    user: User,
+    filename: str,
+    stream: BinaryIO,
+    content_type: str,
+) -> tuple[Job, Sample, StoredObject]:
+    """Create a job + sample row and stream the bytes to object storage.
+
+    A new Job is created in the ``queued`` state for every upload so
+    that each upload is independently trackable. In Phase 1f the job
+    is enqueued to RQ; for now the Job row exists but nothing will pop
+    it until the worker is wired up.
+    """
+    _check_filename(filename)
+
+    job = Job(user_id=user.id, status=JobStatus.QUEUED)
+    session.add(job)
+    await session.flush()  # populate job.id for the S3 key
+
+    storage = get_storage()
+    key = storage.build_sample_key(user_id=user.id, job_id=job.id, filename=filename)
+
+    try:
+        stored = storage.put_stream(
+            key=key,
+            stream=stream,
+            content_type=content_type or "application/octet-stream",
+        )
+    except ValueError as exc:
+        # put_stream refuses zero-byte uploads.
+        raise EmptySample("Uploaded file was empty") from exc
+
+    settings = get_settings()
+    if stored.size_bytes > settings.MAX_UPLOAD_BYTES:
+        # Clean up the too-large object we just wrote.
+        storage.delete(key)
+        msg = (
+            f"Upload is {stored.size_bytes} bytes, max is "
+            f"{settings.MAX_UPLOAD_BYTES}"
+        )
+        raise SampleTooLarge(msg)
+
+    sample = Sample(
+        job_id=job.id,
+        filename=filename,
+        s3_key=stored.key,
+        sha256=stored.sha256,
+        size_bytes=stored.size_bytes,
+        content_type=stored.content_type,
+    )
+    session.add(sample)
+    await session.flush()
+
+    log.info(
+        "sample.uploaded",
+        user_id=str(user.id),
+        job_id=str(job.id),
+        sample_id=str(sample.id),
+        size_bytes=sample.size_bytes,
+        sha256=sample.sha256,
+    )
+
+    # Enqueue the Phase 1 no-op pipeline so /ws/jobs/{id} sees events.
+    from datetime import datetime, timezone
+
+    await enqueue_job(session, job=job)
+    job.queued_at = datetime.now(tz=timezone.utc)
+    await publish_job_event(
+        job.id,
+        {
+            "kind": "job.queued",
+            "message": "Upload received; job waiting for worker",
+            "progress": 0.0,
+        },
+    )
+
+    return job, sample, stored
+
+
+async def get_sample_for_user(
+    session: AsyncSession,
+    *,
+    sample_id: uuid.UUID,
+    user: User,
+) -> Sample | None:
+    """Return the sample iff it belongs to ``user``."""
+    sample = await session.get(Sample, sample_id)
+    if sample is None:
+        return None
+    # Walk via the parent job's user_id so we never leak another user's
+    # rows.
+    job = await session.get(Job, sample.job_id)
+    if job is None or job.user_id != user.id:
+        return None
+    return sample
