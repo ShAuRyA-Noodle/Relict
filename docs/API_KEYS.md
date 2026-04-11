@@ -39,7 +39,7 @@ We need a free token to fetch per-species conservation categories
 1. Go to https://apiv3.iucnredlist.org/api/v3/token
 2. Fill in the form:
    - Name, email, organization
-   - **Application name:** "eDNA Insights — open-source reproducible eDNA analysis platform"
+   - **Application name:** "Relict — open-source reproducible eDNA analysis platform"
    - **Intended use:** "Cross-referencing species detected in environmental DNA samples against their IUCN Red List conservation status, for biodiversity monitoring and conservation reporting. Open-source research tool."
 3. Submit. You'll receive a token by email within **1–3 business days**
    (IUCN reviews manually).
@@ -196,7 +196,7 @@ REDIS_PORT=6379
 MINIO_ENDPOINT=minio:9000
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=change-me-in-local-dev
-MINIO_BUCKET=edna-insights
+MINIO_BUCKET=relict
 MINIO_SECURE=false
 
 # --- Security ---

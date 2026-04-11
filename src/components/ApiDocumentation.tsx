@@ -15,7 +15,7 @@ const endpoints = [
       { name: "file", type: "File", required: true, description: "FASTA or CSV file (max 20MB)" },
       { name: "format", type: "string", required: false, description: "Output format preference" }
     ],
-    example: `curl -X POST https://api.edna-insights.org/analyze \\
+    example: `curl -X POST https://api.relict.dev/analyze \\
   -F "file=@sample.fasta" \\
   -H "Authorization: Bearer YOUR_API_KEY"`
   },
@@ -26,7 +26,7 @@ const endpoints = [
     parameters: [
       { name: "id", type: "string", required: true, description: "Job ID returned from analyze endpoint" }
     ],
-    example: `curl -X GET https://api.edna-insights.org/job/abc123 \\
+    example: `curl -X GET https://api.relict.dev/job/abc123 \\
   -H "Authorization: Bearer YOUR_API_KEY"`
   },
   {
@@ -37,7 +37,7 @@ const endpoints = [
       { name: "q", type: "string", required: false, description: "Search query" },
       { name: "limit", type: "number", required: false, description: "Results limit (default: 50)" }
     ],
-    example: `curl -X GET "https://api.edna-insights.org/species?q=thunnus&limit=10" \\
+    example: `curl -X GET "https://api.relict.dev/species?q=thunnus&limit=10" \\
   -H "Authorization: Bearer YOUR_API_KEY"`
   }
 ];
@@ -139,7 +139,7 @@ export const ApiDocumentation = () => {
         <Card className="p-6">
           <h3 className="text-xl font-display font-semibold mb-4">Base URL</h3>
           <div className="bg-muted/50 p-3 rounded-lg font-mono text-sm">
-            https://api.edna-insights.org/v1
+            https://api.relict.dev/v1
           </div>
         </Card>
         

@@ -29,7 +29,7 @@ export const Footer = () => {
             <Link to="/" className="flex items-center space-x-2 mb-4">
               <Dna className="w-8 h-8 text-emerald" />
               <span className="font-display font-bold text-xl">
-                eDNA <span className="text-emerald">Insights</span>
+                <span className="text-emerald">Relict</span>
               </span>
             </Link>
             <p className="text-off-white/80 mb-4 leading-relaxed">

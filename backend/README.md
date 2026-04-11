@@ -1,6 +1,6 @@
 # backend/
 
-Real FastAPI backend, bioinformatics worker, and pipeline modules for eDNA Insights.
+Real FastAPI backend, bioinformatics worker, and pipeline modules for Relict.
 
 **Status:** scaffold only. Code lands in Phase 1 of the rebuild — see [`../docs/MASTER_PLAN.md`](../docs/MASTER_PLAN.md).
 

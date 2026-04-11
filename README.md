@@ -1,4 +1,6 @@
-# eDNA Insights
+# Relict
+
+*/ˈrelɪkt/ — a trace of something no longer present.*
 
 > **Reproducible environmental DNA analysis with conservation-status cross-referencing and signed provenance — open source, no mock data, no fabricated metrics.**
 
@@ -35,7 +37,7 @@ not computed from real input.
 
 ## 🎯 What This Project Is
 
-**eDNA Insights** is an open-source platform for turning raw environmental DNA
+**Relict** is an open-source platform for turning raw environmental DNA
 sequencing reads into scientifically auditable biodiversity insights. It
 unifies three use cases that today require three separate stacks:
 
@@ -76,7 +78,7 @@ eDNA is especially powerful for:
 The challenge: raw eDNA reads are useless without a long, error-prone
 bioinformatics pipeline. Existing tools (QIIME2, DADA2, vsearch, mothur,
 OBITools) are powerful but fragmented, CLI-only, and opaque to non-specialists.
-eDNA Insights integrates them into a single reproducible, auditable platform
+Relict integrates them into a single reproducible, auditable platform
 with a usable interface and first-class conservation cross-referencing.
 
 ---

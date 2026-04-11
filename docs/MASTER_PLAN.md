@@ -1,4 +1,4 @@
-# MASTER PLAN — eDNA Insights Transformation
+# MASTER PLAN — Relict Transformation
 
 > **Goal:** transform this repository from a hackathon-era UI prototype with
 > a stub backend into a production-grade, publication-ready, open-source
@@ -578,7 +578,7 @@ Pick real, peer-reviewed eDNA papers with open data. Candidates:
 Each benchmark is a `backend/scripts/benchmark_<paper_short_name>.py` that:
 
 - Downloads the raw FASTQs from SRA/ENA via `sra-tools` or `curl` (SHA-verified).
-- Runs the eDNA Insights pipeline with the same parameters as the paper.
+- Runs the Relict pipeline with the same parameters as the paper.
 - Compares outputs: ASV count, taxonomy agreement (Jaccard at genus), Shannon
   index (within configured tolerance).
 - Writes a `benchmark_report.md` with pass/fail against tolerance.
@@ -622,7 +622,7 @@ Things only you can get. I'll build everything else.
 | 4 | **Disk budget confirmation** | your machine | Confirm ~15 GB free. Breakdown: SILVA 138.1 SSU NR99 ≈ 2.0 GB, MIDORI2 COI ≈ 1.5 GB, MitoFish 12S ≈ 50 MB, demo datasets ≈ 5 GB, Docker volumes ≈ 5 GB. |
 | 5 | **Docker Desktop installed & running** | https://www.docker.com/products/docker-desktop/ | Required for the backend from Phase 1 onward. Confirm `docker compose version` ≥ 2.20. |
 | 6 | **Python 3.11+ confirmed** | `python --version` | For local dev outside Docker. |
-| 7 | **Choose a project name** | — | Current placeholder is "eDNA Insights". If you want a different name (e.g. "OpenEDNA", "Aequora", "BioFlux"), say so before Phase 1 so I rename consistently. |
+| 7 | **Choose a project name** | — | Current placeholder is "Relict". If you want a different name (e.g. "OpenEDNA", "Aequora", "BioFlux"), say so before Phase 1 so I rename consistently. |
 | 8 | **Reference conference paper (optional)** | you already offered | Pick 1–2 recent eDNA methods papers from *Methods in Ecology and Evolution* or *Molecular Ecology Resources* that you want me to use as the style/structure template for your paper. |
 
 See [`API_KEYS.md`](./API_KEYS.md) for detailed step-by-step instructions on

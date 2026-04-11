@@ -1,4 +1,4 @@
-# ARCHITECTURE — eDNA Insights
+# ARCHITECTURE — Relict
 
 > This document describes the **target architecture**. The current state of
 > the repository is Phase 0 (docs + scaffolding). See

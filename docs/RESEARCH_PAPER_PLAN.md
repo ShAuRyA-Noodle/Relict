@@ -1,4 +1,4 @@
-# RESEARCH_PAPER_PLAN — Writing and submitting the eDNA Insights paper
+# RESEARCH_PAPER_PLAN — Writing and submitting the Relict paper
 
 > **Honest framing:** Top-tier venues (Nature Methods, Nature Ecology &
 > Evolution) are extremely unlikely for a solo-author side project no matter
@@ -11,7 +11,7 @@
 
 ## 1. The core claim of the paper
 
-**"eDNA Insights is the first open-source platform that unifies conservation
+**"Relict is the first open-source platform that unifies conservation
 status cross-referencing, reproducible provenance manifests, and citizen-science
 submission of DNA-derived occurrences on top of a standard amplicon
 bioinformatics pipeline — closing the gap between raw eDNA reads and actionable
@@ -80,7 +80,7 @@ Target length: **~5,000 words** plus figures, plus supplementary.
 
 ### Title (working)
 
-> *"eDNA Insights: An open-source, reproducible platform unifying
+> *"Relict: An open-source, reproducible platform unifying
 > environmental DNA analysis, conservation cross-referencing, and
 > citizen-science submission."*
 

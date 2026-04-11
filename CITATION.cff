@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata below."
-title: "eDNA Insights: Reproducible Environmental DNA Analysis Platform"
+title: "Relict: A Reproducible Environmental DNA Analysis Platform with Conservation Cross-Referencing"
 abstract: >
-  eDNA Insights is an open-source, reproducible platform for environmental
+  Relict is an open-source, reproducible platform for environmental
   DNA analysis. It unifies a standard amplicon bioinformatics pipeline
   (fastp → vsearch/DADA2 → SILVA/MIDORI2/MitoFish → scikit-bio), automated
   conservation-status cross-referencing (GBIF + IUCN Red List), signed
@@ -30,7 +30,7 @@ keywords:
   - open-science
 preferred-citation:
   type: software
-  title: "eDNA Insights: Reproducible Environmental DNA Analysis Platform"
+  title: "Relict: A Reproducible Environmental DNA Analysis Platform with Conservation Cross-Referencing"
   authors:
     - family-names: "Punj"
       given-names: "Shaurya"

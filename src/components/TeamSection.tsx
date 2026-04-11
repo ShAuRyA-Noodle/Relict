@@ -18,7 +18,7 @@ const architect = {
     "Product & Technical Leadership"
   ],
   bio: `
-  eDNA Insights is a fully independent, end-to-end research platform designed,
+  Relict is a fully independent, end-to-end research platform designed,
   engineered, and deployed by a single developer.
 
   Shaurya architected the complete system — from frontend experience and backend
