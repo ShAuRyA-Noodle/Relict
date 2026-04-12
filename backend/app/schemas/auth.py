@@ -1,11 +1,10 @@
 """Pydantic request / response models for authentication endpoints."""
 from __future__ import annotations
 
-import uuid
-from datetime import datetime
+import uuid  # noqa: TC003 — Pydantic resolves this at runtime
+from datetime import datetime  # noqa: TC003 — Pydantic resolves this at runtime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
-
 
 # ─── Requests ──────────────────────────────────────────────────────────
 

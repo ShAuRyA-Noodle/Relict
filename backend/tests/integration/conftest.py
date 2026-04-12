@@ -12,7 +12,7 @@ tests with a TRUNCATE … CASCADE.
 from __future__ import annotations
 
 import os
-from collections.abc import AsyncIterator, Iterator
+from typing import TYPE_CHECKING
 
 import pytest
 import pytest_asyncio
@@ -21,6 +21,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from testcontainers.minio import MinioContainer
 from testcontainers.postgres import PostgresContainer
 from testcontainers.redis import RedisContainer
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator, Iterator
 
 
 @pytest.fixture(scope="module")
@@ -59,8 +62,8 @@ def minio_container() -> Iterator[MinioContainer]:
 async def _engine(postgres_container, redis_container, minio_container):  # type: ignore[no-untyped-def]
     """Run the Alembic migration against the test Postgres and yield an engine."""
     from app.core.config import get_settings
-    from app.db.base import Base
     from app.db import models  # noqa: F401 — register tables
+    from app.db.base import Base
 
     get_settings.cache_clear()
     settings = get_settings()

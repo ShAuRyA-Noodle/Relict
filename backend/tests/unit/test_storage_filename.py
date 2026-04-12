@@ -9,7 +9,11 @@ def test_simple_name_passes_through() -> None:
 
 
 def test_strips_dangerous_characters() -> None:
-    assert _sanitize_filename("../etc/passwd") == "___etc_passwd"
+    # "../etc/passwd" -> ".._etc_passwd" after char replacement ->
+    # "_etc_passwd" after the leading-dot strip.
+    assert _sanitize_filename("../etc/passwd") == "_etc_passwd"
+    # Path traversal via backslashes is also neutralised.
+    assert _sanitize_filename("..\\windows\\system32") == "_windows_system32"
 
 
 def test_replaces_spaces_and_unicode() -> None:

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-
 from app.services import auth as auth_service
 
 pytestmark = pytest.mark.integration

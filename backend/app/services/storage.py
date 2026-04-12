@@ -13,16 +13,18 @@ from __future__ import annotations
 import hashlib
 import io
 import uuid
-from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import BinaryIO
+from typing import TYPE_CHECKING, BinaryIO
 
 from minio import Minio
 from minio.error import S3Error
 
 from app.core.config import Settings, get_settings
 from app.core.logging import get_logger
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 log = get_logger(__name__)
 

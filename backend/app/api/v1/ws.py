@@ -16,16 +16,19 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
+from typing import TYPE_CHECKING
 
 import jwt
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
 from app.core.security import decode_access_token
 from app.db.models import Job, User
 from app.db.session import async_session_factory
 from app.services.queue import channel_for_job, get_redis
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 log = get_logger(__name__)
 router = APIRouter(tags=["ws"])
@@ -86,7 +89,7 @@ async def job_events(
                     pubsub.get_message(ignore_subscribe_messages=True),
                     timeout=30.0,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # Send a heartbeat to keep proxies from closing the socket.
                 try:
                     await websocket.send_text(json.dumps({"kind": "ws.heartbeat"}))
@@ -112,7 +115,7 @@ async def job_events(
     finally:
         try:
             await pubsub.unsubscribe(channel)
-            await pubsub.aclose()
+            await pubsub.close()
         except Exception as exc:  # noqa: BLE001
             log.warning("ws.pubsub_cleanup_failed", error=str(exc))
         log.info("ws.closed", job_id=str(job_id), user_id=str(user_id))

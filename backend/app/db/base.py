@@ -8,7 +8,7 @@ columns, which we want on almost every table.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import DateTime, MetaData
@@ -37,7 +37,7 @@ class Base(DeclarativeBase):
 
 def _now() -> datetime:
     """UTC 'now' that SQLAlchemy default= can call on each insert."""
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)
 
 
 class UUIDPrimaryKey:

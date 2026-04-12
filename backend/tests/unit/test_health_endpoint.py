@@ -6,9 +6,8 @@ it's covered by integration tests that spin up real containers.
 """
 from __future__ import annotations
 
-from fastapi.testclient import TestClient
-
 from app.main import create_app
+from fastapi.testclient import TestClient
 
 
 def test_health_returns_ok() -> None:

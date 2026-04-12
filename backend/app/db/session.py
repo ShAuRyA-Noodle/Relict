@@ -7,8 +7,7 @@ exit, rolled back on any exception, and closed when the request ends.
 """
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -18,6 +17,9 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.core.config import get_settings
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 
 def _make_engine() -> AsyncEngine:

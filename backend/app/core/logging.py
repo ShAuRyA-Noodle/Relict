@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from structlog.types import EventDict, Processor
+
+if TYPE_CHECKING:
+    from structlog.types import EventDict, Processor
 
 
 def _add_severity(

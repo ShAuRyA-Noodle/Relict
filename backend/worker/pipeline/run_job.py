@@ -15,15 +15,14 @@ from __future__ import annotations
 
 import time
 import uuid
-from datetime import datetime, timezone
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from datetime import UTC, datetime
 
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.db.models import Job, JobStatus
 from app.services.queue import publish_job_event_sync
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 log = get_logger("worker.pipeline")
 
@@ -59,7 +58,7 @@ def run_job(job_id: str) -> dict[str, str]:
 
         # ─── Transition to running ─────────────────────────────────────
         job.status = JobStatus.RUNNING
-        job.started_at = datetime.now(tz=timezone.utc)
+        job.started_at = datetime.now(tz=UTC)
         job.pipeline_version = "phase1-stub-0.1.0"
         session.commit()
 
@@ -104,7 +103,7 @@ def run_job(job_id: str) -> dict[str, str]:
 
         # ─── Transition to succeeded ───────────────────────────────────
         job.status = JobStatus.SUCCEEDED
-        job.finished_at = datetime.now(tz=timezone.utc)
+        job.finished_at = datetime.now(tz=UTC)
         session.commit()
 
         publish_job_event_sync(

@@ -1,10 +1,10 @@
 """Sample routes — upload, inspect, delete."""
 from __future__ import annotations
 
-import uuid
+import uuid  # noqa: TC003 — FastAPI uses this for path param introspection
 from datetime import timedelta
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, HTTPException, UploadFile, status
 
 from app.api.deps import CurrentUser, SessionDep
 from app.schemas.samples import SamplePublic, SampleUploadResponse

@@ -1,10 +1,8 @@
 """Sample service — upload raw FASTQ, persist metadata, link to a job."""
 from __future__ import annotations
 
-import uuid
-from typing import BinaryIO
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import UTC
+from typing import TYPE_CHECKING, BinaryIO
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
@@ -12,6 +10,11 @@ from app.db.models import Job, JobStatus, Sample, User
 from app.services.jobs import enqueue_job
 from app.services.queue import publish_job_event
 from app.services.storage import StoredObject, get_storage
+
+if TYPE_CHECKING:
+    import uuid
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 log = get_logger(__name__)
 
@@ -112,10 +115,10 @@ async def upload_sample(
     )
 
     # Enqueue the Phase 1 no-op pipeline so /ws/jobs/{id} sees events.
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     await enqueue_job(session, job=job)
-    job.queued_at = datetime.now(tz=timezone.utc)
+    job.queued_at = datetime.now(tz=UTC)
     await publish_job_event(
         job.id,
         {

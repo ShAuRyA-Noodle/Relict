@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import time
 import uuid
-from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,6 +26,9 @@ from app.core.logging import (
 )
 from app.db.session import dispose_engine
 from app.services.queue import close_redis
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 log = get_logger(__name__)
 

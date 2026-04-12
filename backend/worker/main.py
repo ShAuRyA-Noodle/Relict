@@ -20,12 +20,11 @@ from __future__ import annotations
 import signal
 import sys
 
-from rq import SimpleWorker, Worker
-from rq.queue import Queue
-
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.services.queue import JOB_QUEUE_NAME, get_sync_redis
+from rq import SimpleWorker, Worker
+from rq.queue import Queue
 
 
 def main() -> int:

@@ -5,7 +5,6 @@ import uuid
 
 import jwt
 import pytest
-
 from app.core.config import get_settings
 from app.core.security import (
     create_access_token,

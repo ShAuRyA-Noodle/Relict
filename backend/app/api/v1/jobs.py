@@ -1,7 +1,7 @@
 """Job routes — list, fetch, cancel. Enqueueing happens via /samples/upload."""
 from __future__ import annotations
 
-import uuid
+import uuid  # noqa: TC003 — FastAPI uses this for path param introspection
 
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select

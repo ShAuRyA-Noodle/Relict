@@ -7,10 +7,10 @@ value is validated, typed, and discoverable from one place.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, SecretStr, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -28,7 +28,12 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
 
     # ─── CORS ─────────────────────────────────────────────────────────
-    CORS_ORIGINS: list[str] = Field(
+    #
+    # ``NoDecode`` tells pydantic-settings not to attempt JSON-parsing
+    # the env var before handing it to our ``field_validator`` — without
+    # it, ``CORS_ORIGINS="http://a, http://b"`` would crash at the source
+    # layer instead of reaching ``_split_cors``.
+    CORS_ORIGINS: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: [
             "http://localhost:5173",
             "http://localhost:8080",
@@ -140,4 +145,4 @@ def get_settings() -> Settings:
     Tests that need to override values should call ``get_settings.cache_clear()``
     before instantiating a new Settings object.
     """
-    return Settings()  # type: ignore[call-arg]
+    return Settings()

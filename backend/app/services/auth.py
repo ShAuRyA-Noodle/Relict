@@ -6,11 +6,10 @@ so the caller controls the transaction boundary.
 """
 from __future__ import annotations
 
-import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import (
     create_access_token,
@@ -21,6 +20,11 @@ from app.core.security import (
 )
 from app.db.models import RefreshSession, User, UserRole
 from app.schemas.auth import TokenPair
+
+if TYPE_CHECKING:
+    import uuid
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class AuthError(Exception):
@@ -114,7 +118,7 @@ async def refresh(
     ip_address: str | None,
 ) -> TokenPair:
     token_hash = hash_refresh_token(refresh_token)
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
 
     row = await session.scalar(
         select(RefreshSession).where(RefreshSession.token_sha256 == token_hash)
@@ -152,7 +156,7 @@ async def logout(
     if row is None:
         return
     if row.revoked_at is None:
-        row.revoked_at = datetime.now(tz=timezone.utc)
+        row.revoked_at = datetime.now(tz=UTC)
         await session.flush()
 
 

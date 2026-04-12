@@ -1,14 +1,18 @@
 """Job service — enqueue, fetch, cancel."""
 from __future__ import annotations
 
-import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
 from app.db.models import Job, JobStatus, User
 from app.services.queue import get_rq_queue
+
+if TYPE_CHECKING:
+    import uuid
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 log = get_logger(__name__)
 
@@ -39,7 +43,7 @@ async def enqueue_job(session: AsyncSession, *, job: Job) -> str:
     job.rq_job_id = rq_job.id
     await session.flush()
     log.info("job.enqueued", job_id=str(job.id), rq_job_id=rq_job.id)
-    return rq_job.id
+    return str(rq_job.id)
 
 
 async def get_job_for_user(

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import redis
@@ -31,12 +31,12 @@ JOB_QUEUE_NAME = "relict_jobs"
 
 # ─── Module-level singletons ───────────────────────────────────────────
 
-_async_client: aioredis.Redis | None = None
-_sync_client: redis.Redis | None = None
+_async_client: aioredis.Redis[bytes] | None = None
+_sync_client: redis.Redis[bytes] | None = None
 _rq_queue: Queue | None = None
 
 
-def get_redis() -> aioredis.Redis:
+def get_redis() -> aioredis.Redis[bytes]:
     """Async Redis client for API request handlers."""
     global _async_client
     if _async_client is None:
@@ -51,7 +51,7 @@ def get_redis() -> aioredis.Redis:
     return _async_client
 
 
-def get_sync_redis() -> redis.Redis:
+def get_sync_redis() -> redis.Redis[bytes]:
     """Sync Redis client for RQ. Not for use inside request handlers."""
     global _sync_client
     if _sync_client is None:
@@ -77,7 +77,7 @@ async def close_redis() -> None:
     """Called from the FastAPI lifespan on shutdown."""
     global _async_client
     if _async_client is not None:
-        await _async_client.aclose()
+        await _async_client.close()
         _async_client = None
 
 
@@ -96,7 +96,7 @@ async def publish_job_event(job_id: uuid.UUID, event: dict[str, Any]) -> None:
     """
     enriched = {
         "event_id": uuid.uuid4().hex,
-        "ts": datetime.now(tz=timezone.utc).isoformat(),
+        "ts": datetime.now(tz=UTC).isoformat(),
         "job_id": str(job_id),
         **event,
     }
@@ -108,7 +108,7 @@ def publish_job_event_sync(job_id: uuid.UUID, event: dict[str, Any]) -> None:
     """Synchronous version called from the worker (no asyncio available)."""
     enriched = {
         "event_id": uuid.uuid4().hex,
-        "ts": datetime.now(tz=timezone.utc).isoformat(),
+        "ts": datetime.now(tz=UTC).isoformat(),
         "job_id": str(job_id),
         **event,
     }

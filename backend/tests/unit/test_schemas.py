@@ -2,9 +2,8 @@
 from __future__ import annotations
 
 import pytest
-from pydantic import ValidationError
-
 from app.schemas.auth import LoginRequest, SignupRequest
+from pydantic import ValidationError
 
 
 class TestSignupRequest:

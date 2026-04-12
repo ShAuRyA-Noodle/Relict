@@ -9,16 +9,17 @@ from __future__ import annotations
 
 import hashlib
 import secrets
-import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any, Literal
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING, Any, Literal
 
 import jwt
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError, VerificationError, InvalidHashError
+from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
 
 from app.core.config import get_settings
 
+if TYPE_CHECKING:
+    import uuid
 
 # OWASP 2024 recommended minimums. These are conservative; tune higher
 # only if benchmarked on the target hardware.
@@ -64,7 +65,7 @@ TokenType = Literal["access", "refresh"]
 
 
 def _now() -> datetime:
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)
 
 
 def create_access_token(

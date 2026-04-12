@@ -18,9 +18,9 @@ has no meaning without its parent, and with ``RESTRICT`` otherwise.
 from __future__ import annotations
 
 import enum
-import uuid
-from datetime import datetime
-from typing import TYPE_CHECKING
+import uuid  # noqa: TC003 — runtime-resolved by SQLAlchemy Mapped[]
+from datetime import datetime  # noqa: TC003 — runtime-resolved by SQLAlchemy Mapped[]
+from typing import Any
 
 from sqlalchemy import (
     JSON,
@@ -42,10 +42,6 @@ from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, Timestamped, UUIDPrimaryKey
-
-if TYPE_CHECKING:
-    pass
-
 
 # ─── Enums ──────────────────────────────────────────────────────────────
 
@@ -218,7 +214,7 @@ class Sample(UUIDPrimaryKey, Timestamped, Base):
     primer_set: Mapped[str | None] = mapped_column(String(64))
 
     # Darwin Core–compatible sample metadata for citizen-science submissions.
-    dwc_metadata: Mapped[dict | None] = mapped_column(JSONB)
+    dwc_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
     job: Mapped[Job] = relationship("Job", back_populates="samples")
     diversity_metric: Mapped[DiversityMetric | None] = relationship(
@@ -338,7 +334,7 @@ class ConservationCache(UUIDPrimaryKey, Timestamped, Base):
     iucn_category: Mapped[str | None] = mapped_column(String(8))
     iucn_assessment_year: Mapped[int | None] = mapped_column(Integer)
     is_invasive: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    legal_flags: Mapped[dict | None] = mapped_column(JSONB)
+    legal_flags: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     __table_args__ = (
@@ -365,7 +361,7 @@ class Provenance(UUIDPrimaryKey, Timestamped, Base):
         unique=True,
     )
     schema_version: Mapped[str] = mapped_column(String(16), nullable=False)
-    manifest: Mapped[dict] = mapped_column(JSON, nullable=False)
+    manifest: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     manifest_sha256: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     signature: Mapped[str] = mapped_column(Text, nullable=False)
     signed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
