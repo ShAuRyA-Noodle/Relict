@@ -68,7 +68,7 @@ export const Footer = () => {
   return (
     <footer 
       ref={containerRef}
-      className="relative bg-black text-white overflow-hidden py-0 border-t-2 border-white/10 font-mono"
+      className="relative bg-transparent text-white overflow-hidden py-0 border-t-2 border-white/10 font-mono"
       style={{ minHeight: "80vh" }}
     >
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay pointer-events-none" />

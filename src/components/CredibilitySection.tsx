@@ -48,7 +48,7 @@ const Counter = ({ from, to, decimal = false }: { from: number; to: number; deci
 
 export const CredibilitySection = () => {
   return (
-    <section className="py-24 bg-background border-t border-white/5 relative overflow-hidden font-mono">
+    <section className="py-24 bg-transparent border-t border-white/5 relative overflow-hidden font-mono">
       <div className="container mx-auto px-4 md:px-8 max-w-6xl">
         
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-12">

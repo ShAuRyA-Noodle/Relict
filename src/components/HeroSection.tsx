@@ -34,7 +34,7 @@ export const HeroSection = () => {
   }, []);
 
   return (
-    <section ref={containerRef} className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background pt-20 scanline">
+    <section ref={containerRef} className="relative min-h-screen flex items-center justify-center overflow-hidden bg-transparent pt-20 scanline">
       
       {/* HUD Crosshairs */}
       <div className="absolute top-24 left-8 w-4 h-4 border-t-2 border-l-2 border-secondary z-0 opacity-50"></div>

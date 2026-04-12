@@ -1,23 +1,29 @@
 import { Header } from "@/components/Header";
 import { DemoUpload } from "@/components/DemoUpload";
 import { Footer } from "@/components/Footer";
+import { TerminalSquare } from "lucide-react";
 
 const Demo = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent font-mono relative">
       <Header />
-      <main className="pt-20">
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h1 className="text-4xl lg:text-5xl font-display font-bold mb-6">
-                eDNA Analysis Demo
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Upload your environmental DNA sample and get AI-powered species identification 
-                and biodiversity insights in seconds.
-              </p>
+      <main className="pt-32 pb-24 relative z-10">
+        <div className="container mx-auto px-4 md:px-8 max-w-5xl">
+          <div className="mb-12">
+            <div className="flex items-center space-x-2 text-secondary text-xs uppercase tracking-widest mb-4">
+              <span className="w-2 h-2 bg-secondary animate-pulse"></span>
+              <span>Sequence Ingestion</span>
             </div>
+            <h1 className="text-4xl md:text-5xl font-heading font-black text-white uppercase tracking-tighter mb-4 flex items-center">
+              Execute <span className="text-neon-cyan ml-3">Pipeline.</span>
+              <TerminalSquare className="w-8 h-8 ml-4 text-gray-600" />
+            </h1>
+            <p className="text-sm text-gray-400 max-w-2xl border-l border-white/20 pl-4 py-1">
+              Upload raw environmental FASTA or FASTQ payloads. Sys daemon will parse reads through the BERT transformer array and output an interactive topology matrix.
+            </p>
+          </div>
+          
+          <div className="w-full">
             <DemoUpload />
           </div>
         </div>

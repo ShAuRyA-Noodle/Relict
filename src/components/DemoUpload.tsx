@@ -1,10 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Upload, FileText, AlertCircle, LogIn, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -13,7 +9,6 @@ import {
   uploadSample,
   getJob,
   createJobWebSocket,
-  type JobPublic,
 } from "@/lib/api";
 
 export const DemoUpload = () => {
@@ -112,18 +107,18 @@ export const DemoUpload = () => {
       setError(null);
       setJobId(null);
       setJobStatus("");
-      setStageMessage("Uploading...");
+      setStageMessage("Uploading sequence array...");
 
       try {
         const result = await uploadSample(file);
         const jid = result.sample.job_id;
         setJobId(jid);
         setUploadProgress(10);
-        setStageMessage("Upload complete — pipeline starting...");
+        setStageMessage("Byte-stream complete. Initializing analysis daemon...");
 
         toast({
-          title: "Upload successful",
-          description: `${file.name} (${(file.size / 1024).toFixed(1)} KB) — processing started`,
+          title: "Ingestion OK",
+          description: `${file.name} (${(file.size / 1024).toFixed(1)} KB) mapped to memory.`,
         });
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Upload failed";
@@ -146,114 +141,162 @@ export const DemoUpload = () => {
 
   if (!isAuthenticated) {
     return (
-      <Card className="p-8 glass max-w-lg mx-auto">
-        <h2 className="text-2xl font-display font-bold mb-4 text-center">
-          {authMode === "signup" ? "Create an account" : "Sign in"} to analyze
-        </h2>
-        <p className="text-muted-foreground text-center mb-6">
-          Real eDNA analysis requires an account so your results are saved and private.
+      <div className="p-8 border border-white/20 bg-black/80 max-w-lg shadow-[0_0_20px_rgba(0,240,255,0.1)] hud-bracket backdrop-blur-md">
+        <div className="text-secondary text-xs mb-6 pb-2 border-b border-white/10 uppercase tracking-widest flex items-center">
+          <LogIn className="w-3 h-3 mr-2" />
+          AUTHORIZATION REQUIRED
+        </div>
+        <p className="text-gray-400 text-xs mb-6">
+          Access to computing clusters requires clearance. Establish proxy connection by supplying credentials below.
         </p>
-        <div className="space-y-4">
+        <div className="space-y-4 font-mono text-sm">
           <input
             type="email"
-            placeholder="Email"
+            placeholder="[ ENTER EMAIL ID ]"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border bg-background"
+            className="w-full px-4 py-3 bg-black border border-white/20 focus:border-primary text-primary focus:outline-none placeholder-gray-600 transition-colors"
           />
           <input
             type="password"
-            placeholder="Password (12+ characters)"
+            placeholder="[ ENTER SECURITY HASH ]"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border bg-background"
+            className="w-full px-4 py-3 bg-black border border-white/20 focus:border-primary text-primary focus:outline-none placeholder-gray-600 transition-colors"
           />
-          <Button onClick={handleAuth} disabled={authLoading} className="w-full" size="lg">
-            {authLoading ? "..." : authMode === "signup" ? (
-              <><UserPlus className="w-4 h-4 mr-2" /> Create Account</>
+          <button 
+            onClick={handleAuth} 
+            disabled={authLoading} 
+            className="w-full btn-cyber py-3 flex items-center justify-center font-bold tracking-widest mt-2"
+          >
+            {authLoading ? "INITIALIZING..." : authMode === "signup" ? (
+              <><UserPlus className="w-4 h-4 mr-2" /> GENERATE ID</>
             ) : (
-              <><LogIn className="w-4 h-4 mr-2" /> Sign In</>
+              <><LogIn className="w-4 h-4 mr-2" /> AUTHENTICATE</>
             )}
-          </Button>
-          <p className="text-sm text-center text-muted-foreground">
-            {authMode === "signup" ? "Already have an account?" : "Need an account?"}{" "}
+          </button>
+          <div className="mt-4 pt-4 border-t border-white/10 text-center text-xs text-gray-500 flex justify-center items-center space-x-2">
+            <span>{authMode === "signup" ? "HAVE KEYS?" : "NO AUTH ID?"}</span>
             <button
               onClick={() => setAuthMode(authMode === "signup" ? "login" : "signup")}
-              className="text-emerald underline"
+              className="text-secondary hover:text-white transition-colors uppercase border-b border-secondary pb-0.5"
             >
-              {authMode === "signup" ? "Sign in" : "Sign up"}
+              {authMode === "signup" ? "LOGIN" : "REQUEST ONE"}
             </button>
-          </p>
+          </div>
         </div>
-      </Card>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Signed in as <strong>{user?.email}</strong>
-        </p>
-        <Button variant="ghost" size="sm" onClick={logout}>Sign out</Button>
+    <div className="space-y-6 max-w-3xl">
+      <div className="flex items-center justify-between border border-white/10 p-3 bg-white/5 backdrop-blur-md">
+        <div className="flex items-center space-x-3 text-xs">
+          <div className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_5px_hsl(var(--primary))]" />
+          <p className="text-gray-400">
+            CONNECTION OK // <strong>{user?.email}</strong>
+          </p>
+        </div>
+        <button className="text-xs text-red-500 hover:text-red-400 border border-red-500/30 px-3 py-1 hover:bg-red-500/10 transition-colors uppercase" onClick={logout}>
+          DISCONNECT
+        </button>
       </div>
 
-      <Card
+      <div
         {...getRootProps()}
         className={cn(
-          "p-12 border-2 border-dashed cursor-pointer transition-all duration-300 text-center",
-          isDragActive ? "border-emerald bg-emerald/5" : "border-muted hover:border-emerald/50",
-          isProcessing && "pointer-events-none opacity-60"
+          "p-12 sm:p-20 border border-dashed cursor-pointer transition-all duration-300 text-center bg-black/60 backdrop-blur-sm hud-bracket relative overflow-hidden",
+          isDragActive ? "border-primary bg-primary/10 shadow-[inset_0_0_50px_rgba(57,255,20,0.2)]" : "border-white/20 hover:border-secondary hover:shadow-[inset_0_0_30px_rgba(0,240,255,0.1)]",
+          isProcessing && "pointer-events-none opacity-50"
         )}
       >
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none" />
         <input {...getInputProps()} />
-        <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-        {isDragActive ? (
-          <p className="text-lg font-medium text-emerald">Drop your FASTQ file here</p>
-        ) : (
-          <>
-            <p className="text-lg font-medium mb-2">
-              Drag & drop a FASTQ / FASTA file, or click to browse
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Supported: .fastq, .fq, .fasta, .fa, .fastq.gz
-            </p>
-          </>
-        )}
-      </Card>
+        
+        <div className="relative z-10 flex flex-col items-center">
+          <div className={cn(
+              "p-4 rounded-xl border mb-6 transition-all duration-300", 
+              isDragActive ? "border-primary text-primary bg-primary/20" : "border-white/10 text-gray-400 bg-white/5"
+            )}>
+            <Upload className="w-8 h-8" />
+          </div>
+          
+          {isDragActive ? (
+            <p className="text-xl font-bold text-primary tracking-widest uppercase">&gt;&gt;&gt; INJECT PAYLOAD &lt;&lt;&lt;</p>
+          ) : (
+            <>
+              <p className="text-lg font-bold text-white mb-2 uppercase tracking-wide">
+                MOUNT FASTA / FASTQ DIRECTORY
+              </p>
+              <p className="text-xs text-gray-500 tracking-widest uppercase">
+                Drag-and-drop or click to parse local file
+              </p>
+            </>
+          )}
+        </div>
+      </div>
 
       {(isProcessing || jobStatus) && (
-        <Card className="p-6 space-y-4">
+        <div className="border border-white/20 bg-black/80 p-6 space-y-6 hud-panel shadow-[0_0_20px_rgba(0,0,0,1)]">
           {uploadedFile && (
-            <div className="flex items-center space-x-3">
-              <FileText className="w-5 h-5 text-emerald" />
-              <span className="font-medium">{uploadedFile.name}</span>
-              <Badge variant="secondary">{(uploadedFile.size / 1024).toFixed(1)} KB</Badge>
-              {jobStatus === "succeeded" && <Badge className="bg-emerald text-white">Complete</Badge>}
-              {jobStatus === "failed" && <Badge variant="destructive">Failed</Badge>}
-              {isProcessing && <Badge variant="outline">Processing...</Badge>}
+            <div className="flex flex-wrap items-center gap-3 border-b border-white/10 pb-4">
+              <FileText className="w-4 h-4 text-neon-cyan" />
+              <span className="font-mono text-sm text-white">{uploadedFile.name}</span>
+              <span className="text-xs text-gray-500 border border-white/10 px-2 py-0.5">
+                {(uploadedFile.size / 1024).toFixed(1)} KB
+              </span>
+              
+              <div className="ml-auto">
+                {jobStatus === "succeeded" && <span className="text-xs text-black font-bold bg-primary px-3 py-1 uppercase tracking-widest">COMPLETE</span>}
+                {jobStatus === "failed" && <span className="text-xs text-white bg-red-600 px-3 py-1 uppercase tracking-widest border border-red-500">FAILED</span>}
+                {isProcessing && <span className="text-xs text-secondary border border-secondary px-3 py-1 uppercase tracking-widest animate-pulse">PROCESSING</span>}
+              </div>
             </div>
           )}
 
-          <Progress value={uploadProgress} className="h-2" />
+          <div className="space-y-2">
+            <div className="flex justify-between text-[10px] text-gray-400 font-mono">
+              <span>{isProcessing ? "PIPELINE_EXECUTION" : "TASK_STATUS"}</span>
+              <span className="text-secondary">{uploadProgress}%</span>
+            </div>
+            {/* Terminal style progress bar */}
+            <div className="w-full h-2 bg-white/10 border border-white/20 p-0.5 box-content overflow-hidden">
+              <div 
+                className="h-full bg-secondary transition-all duration-300" 
+                style={{ width: `${uploadProgress}%` }} 
+              />
+            </div>
+          </div>
 
           {stageMessage && (
-            <p className="text-sm text-muted-foreground">{stageMessage}</p>
+            <div className="p-3 bg-white/5 border-l-2 border-secondary font-mono text-xs text-gray-300">
+              <span className="text-secondary opacity-50 mr-2">&gt;</span> {stageMessage}
+              {isProcessing && <span className="ml-1 animate-pulse">_</span>}
+            </div>
           )}
 
           {error && (
-            <div className="flex items-center space-x-2 text-destructive">
-              <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">{error}</span>
+            <div className="p-3 bg-red-900/20 border border-red-500/50 flex items-start space-x-3 text-red-400 font-mono text-xs">
+              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <div>
+                <div className="font-bold mb-1">SYSTEM_ERR</div>
+                <div>{error}</div>
+              </div>
             </div>
           )}
 
           {jobStatus === "succeeded" && jobId && (
-            <Button onClick={() => navigate(`/jobs/${jobId}`)} className="w-full" size="lg">
-              View Results
-            </Button>
+            <div className="pt-4 border-t border-white/10">
+              <button 
+                onClick={() => navigate(`/jobs/${jobId}`)} 
+                className="w-full btn-cyber py-4 font-bold tracking-widest flex items-center justify-center text-sm"
+              >
+                OPEN_TOPOLOGY_MATRIX
+              </button>
+            </div>
           )}
-        </Card>
+        </div>
       )}
     </div>
   );

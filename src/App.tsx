@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ReactLenis } from "@studio-freight/react-lenis";
 import CustomCursor from "@/components/CustomCursor";
+import { BioNetworkBackground } from "@/components/BioNetworkBackground";
 
 import Index from "./pages/Index";
 import Demo from "./pages/Demo";
@@ -28,6 +29,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <ReactLenis root options={{ lerp: 0.05, syncTouch: true }}>
+        <BioNetworkBackground />
         <CustomCursor />
         <TooltipProvider>
           <Toaster />

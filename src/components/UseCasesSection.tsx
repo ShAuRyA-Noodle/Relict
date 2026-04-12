@@ -36,7 +36,7 @@ const targets = [
 
 export const UseCasesSection = () => {
   return (
-    <section className="py-32 bg-background relative font-mono overflow-hidden">
+    <section className="py-32 bg-transparent relative font-mono overflow-hidden">
       <div className="absolute inset-0 z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
       
       {/* Background wireframe orb */}

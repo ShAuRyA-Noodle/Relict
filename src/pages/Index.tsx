@@ -14,7 +14,7 @@ const Index = () => {
   return (
     <motion.div 
       ref={ref}
-      className="min-h-screen bg-background"
+      className="min-h-screen bg-transparent"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}

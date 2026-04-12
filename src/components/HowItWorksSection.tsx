@@ -50,7 +50,7 @@ export const HowItWorksSection = () => {
     <section 
       ref={containerRef} 
       id="pipeline" 
-      className="relative bg-background border-t border-white/5 py-24 sm:py-32"
+      className="relative bg-transparent border-t border-white/5 py-24 sm:py-32"
     >
       <div className="container mx-auto px-4 md:px-8 relative z-10 w-full max-w-5xl">
         <div className="mb-20">
