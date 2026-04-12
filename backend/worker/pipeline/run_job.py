@@ -39,6 +39,7 @@ from worker import PIPELINE_VERSION, TOOL_VERSIONS
 from worker.pipeline import StageError
 from worker.pipeline import conservation as conservation_stage
 from worker.pipeline import denoise_vsearch as denoise_stage
+from worker.pipeline import provenance as provenance_stage
 from worker.pipeline import dereplicate as derep_stage
 from worker.pipeline import diversity as diversity_stage
 from worker.pipeline import ordination as ordination_stage
@@ -233,12 +234,58 @@ def run_job(job_id: str) -> dict[str, str]:
             )
 
             # ─── Compute parameter hash ───────────────────────────────
-            param_str = json.dumps({
+            pipeline_params = {
                 "pipeline_version": PIPELINE_VERSION,
                 "tool_versions": TOOL_VERSIONS,
                 "amplicon": str(job.amplicon),
-            }, sort_keys=True)
+            }
+            param_str = json.dumps(pipeline_params, sort_keys=True)
             job.parameter_hash = hashlib.sha256(param_str.encode()).hexdigest()
+
+            # ─── Stage 7: Provenance manifest ─────────────────────────
+            _emit(uid, "stage.started", "Generating provenance manifest", stage="provenance", progress=0.96)
+            ref_db_info = []
+            ref_db_path = _detect_reference_db(job.amplicon.value if job.amplicon else "16S_V4")
+            if ref_db_path and ref_db_path.exists():
+                ref_db_info.append({
+                    "name": ref_db_path.name,
+                    "path": str(ref_db_path),
+                    "sha256": provenance_stage.sha256_file(ref_db_path) if ref_db_path.stat().st_size < 100_000_000 else "skipped-large-file",
+                })
+
+            prov_result = provenance_stage.run(
+                workspace,
+                job_id=job_id,
+                input_files=[{
+                    "filename": sample.filename,
+                    "sha256": sample.sha256,
+                    "size_bytes": sample.size_bytes,
+                }],
+                stage_results=stage_results,
+                reference_dbs=ref_db_info,
+                parameters=pipeline_params,
+                logger=log,
+            )
+            stage_results.append(prov_result.to_dict())
+
+            manifest_sha = prov_result.metrics.get("manifest_sha256", "")
+            manifest_path = Path(prov_result.output_files[0]) if prov_result.output_files else None
+            manifest_data = {}
+            if manifest_path and manifest_path.exists():
+                manifest_data = json.loads(manifest_path.read_text())
+
+            from app.db.models import Provenance
+            prov_row = Provenance(
+                job_id=job.id,
+                schema_version="1.0",
+                manifest=manifest_data,
+                manifest_sha256=manifest_sha,
+                signature=manifest_data.get("signature", f"sha256:{manifest_sha}"),
+                signed_at=datetime.now(tz=UTC),
+            )
+            session.add(prov_row)
+
+            _emit(uid, "stage.completed", f"Provenance manifest signed: {manifest_sha[:16]}...", stage="provenance", progress=0.99)
 
             # ─── Mark succeeded ────────────────────────────────────────
             job.status = JobStatus.SUCCEEDED

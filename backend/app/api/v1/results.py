@@ -14,8 +14,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentUser, SessionDep
-from app.db.models import ASV, ConservationCache, DiversityMetric, Job, JobStatus, Sample, Taxon
+from app.db.models import ASV, ConservationCache, DiversityMetric, Job, JobStatus, Provenance, Sample, Taxon
 from app.schemas.conservation import ConservationPublic, ConservationSummary
+from app.schemas.provenance import ProvenancePublic
 from app.schemas.results import (
     ASVWithTaxon,
     DiversityPublic,
@@ -229,3 +230,36 @@ async def job_conservation(
         ),
         records=records,
     )
+
+
+@router.get(
+    "/provenance",
+    response_model=ProvenancePublic,
+    summary="Signed provenance manifest — reproducibility receipt for this run",
+)
+async def job_provenance(
+    job_id: uuid.UUID,
+    user: CurrentUser,
+    session: SessionDep,
+) -> ProvenancePublic:
+    """Return the signed provenance manifest for a completed job.
+
+    The manifest records every input hash, tool version, reference
+    database version, parameter, and output hash — so the entire
+    analysis can be independently reproduced and verified.
+
+    The ``signature`` field is a SHA256 hash of the canonical manifest
+    JSON. Verify it by recomputing the hash yourself.
+    """
+    job = await _get_succeeded_job(session, job_id, user)
+
+    prov = await session.scalar(
+        select(Provenance).where(Provenance.job_id == job.id)
+    )
+    if prov is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No provenance manifest found for this job. The job may have been run before Phase 5.",
+        )
+
+    return ProvenancePublic.model_validate(prov)

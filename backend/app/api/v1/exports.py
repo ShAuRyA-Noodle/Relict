@@ -163,3 +163,76 @@ async def export_csv(
         media_type="text/csv",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get(
+    "/biom",
+    summary="Download ASV table as BIOM format (for QIIME2 / phyloseq)",
+    response_class=Response,
+)
+async def export_biom(
+    job_id: uuid.UUID,
+    user: CurrentUser,
+    session: SessionDep,
+) -> Response:
+    """Download the ASV abundance table in BIOM 2.1 JSON format.
+
+    BIOM (Biological Observation Matrix) is the standard interchange
+    format for microbiome data. The exported file can be imported into
+    QIIME2, phyloseq, or any other BIOM-compatible tool.
+    """
+    import json as json_mod
+
+    job = await _get_succeeded_job(session, job_id, user)
+
+    stmt = (
+        select(ASV)
+        .where(ASV.job_id == job.id)
+        .options(selectinload(ASV.taxon))
+        .order_by(ASV.abundance.desc())
+    )
+    asvs = list(await session.scalars(stmt))
+
+    sample_obj = await session.scalar(select(Sample).where(Sample.job_id == job.id))
+    sample_id = sample_obj.filename if sample_obj else str(job.id)
+
+    rows = []
+    for i, asv in enumerate(asvs):
+        tax = asv.taxon
+        lineage = ""
+        if tax:
+            parts = [
+                f"k__{tax.kingdom or ''}", f"p__{tax.phylum or ''}",
+                f"c__{tax.tax_class or ''}", f"o__{tax.tax_order or ''}",
+                f"f__{tax.family or ''}", f"g__{tax.genus or ''}",
+                f"s__{tax.species or ''}",
+            ]
+            lineage = "; ".join(parts)
+
+        rows.append({
+            "id": asv.sequence_sha256[:16],
+            "metadata": {"taxonomy": lineage, "sequence": asv.sequence},
+            "data": [asv.abundance],
+        })
+
+    biom_data = {
+        "id": str(job.id),
+        "format": "Biological Observation Matrix 2.1.0",
+        "format_url": "http://biom-format.org",
+        "generated_by": f"Relict v{job.pipeline_version or 'unknown'}",
+        "type": "OTU table",
+        "matrix_type": "dense",
+        "matrix_element_type": "int",
+        "shape": [len(rows), 1],
+        "rows": [{"id": r["id"], "metadata": r["metadata"]} for r in rows],
+        "columns": [{"id": sample_id, "metadata": None}],
+        "data": [r["data"] for r in rows],
+    }
+
+    biom_bytes = json_mod.dumps(biom_data, indent=2).encode("utf-8")
+    filename = f"relict_biom_{job.id}.json"
+    return Response(
+        content=biom_bytes,
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
