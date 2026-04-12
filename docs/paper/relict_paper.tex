@@ -1,713 +1,323 @@
-% ══════════════════════════════════════════════════════════════════════
-%  Relict: A reproducible, open-source platform unifying environmental
-%  DNA analysis, conservation cross-referencing, and citizen-science
-%  data submission
-%
-%  Target: Methods in Ecology and Evolution — APPLICATION track
-%  Author: Shaurya Punj
-%  Date:   2026
-% ══════════════════════════════════════════════════════════════════════
-
-\documentclass[11pt, a4paper]{article}
-
-% ─── Packages ────────────────────────────────────────────────────────
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{mathpazo}                   % Palatino font (clean, journal-ready)
-\usepackage[margin=2.5cm]{geometry}
+\documentclass[runningheads]{llncs}
 \usepackage{graphicx}
-\usepackage{booktabs}                   % Professional tables
-\usepackage{tabularx}
-\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{multirow}
 \usepackage{hyperref}
-\usepackage{xcolor}
-\usepackage{enumitem}
-\usepackage{amsmath}
-\usepackage{natbib}                     % Author-year citations
-\usepackage{float}
-\usepackage{caption}
-\usepackage{subcaption}
 \usepackage{tikz}
-\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, calc}
-\usepackage{fancyhdr}
-\usepackage{lineno}                     % Line numbers (required by MEE)
-\usepackage{setspace}                   % Double spacing
-\usepackage{microtype}                  % Better typography
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, backgrounds}
 
-% ─── Hyperref setup ──────────────────────────────────────────────────
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue!60!black,
-    citecolor=blue!60!black,
-    urlcolor=blue!60!black,
-    pdftitle={Relict: Reproducible eDNA Analysis Platform},
-    pdfauthor={Shaurya Punj},
-}
-
-% ─── Page setup ──────────────────────────────────────────────────────
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[L]{\small\textsc{Relict: Reproducible eDNA Analysis}}
-\fancyhead[R]{\small\thepage}
-\renewcommand{\headrulewidth}{0.4pt}
-
-% ─── Line numbers + double spacing (journal requirement) ────────────
-\linenumbers
-\doublespacing
-
-% ─── Custom commands ─────────────────────────────────────────────────
-\newcommand{\relict}{\textsc{Relict}}
-\newcommand{\software}[1]{\texttt{#1}}
-
-% ─── TikZ styles for diagrams ───────────────────────────────────────
-\tikzstyle{service} = [
-    rectangle, rounded corners=4pt, minimum width=3cm, minimum height=1cm,
-    text centered, draw=black!60, fill=blue!8, font=\small
-]
-\tikzstyle{stage} = [
-    rectangle, rounded corners=4pt, minimum width=4cm, minimum height=0.8cm,
-    text centered, draw=black!60, fill=green!8, font=\small
-]
-\tikzstyle{data} = [
-    cylinder, shape border rotate=90, draw=black!60, fill=orange!8,
-    minimum height=0.8cm, minimum width=2cm, font=\small,
-    aspect=0.25
-]
-\tikzstyle{arrow} = [-{Stealth[length=3mm]}, thick, draw=black!60]
-
-% ══════════════════════════════════════════════════════════════════════
 \begin{document}
 
-% ─── Title block ─────────────────────────────────────────────────────
-\begin{center}
-    {\LARGE\bfseries Relict: A reproducible, open-source platform unifying\\[4pt]
-    environmental DNA analysis, conservation cross-referencing,\\[4pt]
-    and citizen-science data submission}
+\title{Relict: A Reproducible Open-Source Platform for Environmental DNA Analysis with Integrated Conservation Cross-Referencing}
 
-    \vspace{1.2em}
+\author{Shaurya Punj}
 
-    {\large Shaurya Punj\textsuperscript{1}%
-    \,\orcidlink{0009-0000-7351-0237}}
-
-    \vspace{0.6em}
-
-    {\small\itshape
-    \textsuperscript{1}Thapar Institute of Engineering and Technology, Patiala, India}
-
-    \vspace{0.4em}
-
-    {\small\textbf{Correspondence:} Shaurya Punj,
-    \href{mailto:workwithshaurya10@gmail.com}{workwithshaurya10@gmail.com}}
-
-    \vspace{0.8em}
-
-    {\footnotesize\textsc{Application} \quad|\quad
-    \textit{Methods in Ecology and Evolution}}
-\end{center}
-
-% ─── ORCID icon command ──────────────────────────────────────────────
-\newcommand{\orcidlink}[1]{%
-    \href{https://orcid.org/#1}{\textsuperscript{\textcolor{green!60!black}{iD}}}%
+\institute{
+Thapar Institute of Engineering and Technology, Patiala, Punjab, India \\
+\email{workwithshaurya10@gmail.com}
 }
 
-\vspace{1em}
-\hrule
-\vspace{1.5em}
-
-% ══════════════════════════════════════════════════════════════════════
-%  ABSTRACT
-% ══════════════════════════════════════════════════════════════════════
+\maketitle
 
 \begin{abstract}
-\begin{enumerate}[leftmargin=1.5em, itemsep=0.5em]
-    \item Environmental DNA (eDNA) metabarcoding has become a standard
-    tool for non-invasive biodiversity monitoring, yet the analytical
-    workflow between raw sequencing reads and actionable ecological
-    insight remains fragmented. Existing bioinformatics pipelines
-    (QIIME\,2, DADA2, mothur) are powerful but CLI-only, opaque to
-    non-specialists, and leave conservation interpretation,
-    reproducibility documentation, and data submission to the user.
-    No existing open tool automates the cross-referencing of eDNA
-    detections against global conservation databases or produces
-    signed provenance manifests suitable for supplementary material.
+Environmental DNA metabarcoding has matured into a widely adopted method for non-invasive biodiversity assessment, yet a persistent disconnect exists between the generation of raw sequencing data and the delivery of ecologically interpretable outputs. Current bioinformatics pipelines handle denoising and taxonomy assignment effectively but leave conservation interpretation, reproducibility documentation, and standardised data submission entirely to the end user. This paper describes Relict, an open-source web platform that integrates a seven-stage amplicon analysis pipeline built on established tools (fastp, vsearch, scikit-bio) with three capabilities absent from existing alternatives: automated per-species conservation status lookup against the Global Biodiversity Information Facility and the IUCN Red List, generation of Darwin Core Archives suitable for citizen-science data publication, and signed provenance manifests that record every input hash, tool version, and pipeline parameter for independent verification. The platform supports six amplicon markers across version-pinned reference databases including SILVA 138.1 and MIDORI2 GenBank 269. Validation against a synthetic known-composition dataset yielded mathematically exact diversity metrics, while processing of a published SRA dataset (ERR2283086, 45,204 reads) produced 51 amplicon sequence variants with complete taxonomy assignment in under four minutes. The software is freely available under the MIT licence.
 
-    \item Here, we present \relict, an open-source, full-stack web
-    platform that integrates a complete amplicon bioinformatics
-    pipeline (fastp quality control, vsearch UNOISE3 ASV inference,
-    taxonomy assignment against SILVA\,138.1\,/\,MIDORI2 GenBank\,269)
-    with three novel layers: (a)~automated conservation
-    cross-referencing against the Global Biodiversity Information
-    Facility (GBIF) and the IUCN Red List, (b)~one-click generation
-    of GBIF-compatible Darwin Core Archives for citizen-science data
-    submission, and (c)~signed provenance manifests recording every
-    input hash, tool version, and parameter for reproducible research.
-    The platform supports six amplicon markers (16S\,V4, 12S\,MiFish,
-    COI\,Leray, 18S\,V9, rbcL, ITS2) with version-pinned reference
-    databases.
-
-    \item We validated \relict{} against a synthetic
-    known-composition dataset (5~bacterial species at equal abundance)
-    and a real published SRA dataset (ERR2283086, 45{,}204 Illumina
-    MiSeq reads). On the synthetic dataset, all 10~benchmark checks
-    passed with mathematically exact results
-    (Shannon~$= \ln 5 = 1.6094$, Simpson~$= 0.8$, evenness~$= 1.0$).
-    On the SRA dataset, \relict{} detected 51~ASVs across three phyla
-    (Proteobacteria, Firmicutes, Actinobacteriota), assigned taxonomy
-    to 100\% of ASVs at 100\% SILVA identity, and cross-referenced
-    all detected taxa against GBIF in a total pipeline runtime of
-    3.6~minutes.
-
-    \item \relict{} addresses three gaps in the current eDNA tooling
-    landscape that no single existing platform covers simultaneously:
-    conservation-status integration, reproducibility guarantees, and
-    citizen-science data publication. The platform is freely available
-    under the MIT licence at
-    \url{https://github.com/ShAuRyA-Noodle/Bad-Omens}.
-\end{enumerate}
+\keywords{Environmental DNA \and Metabarcoding \and Bioinformatics Pipeline \and Conservation \and Reproducible Research \and GBIF \and IUCN Red List \and Citizen Science}
 \end{abstract}
-
-\noindent\textbf{Keywords:} environmental DNA, eDNA, metabarcoding,
-bioinformatics pipeline, conservation, reproducible research, GBIF,
-IUCN Red List, citizen science, amplicon sequence variants
-
-\vspace{1.5em}
-
-% ══════════════════════════════════════════════════════════════════════
-%  1. INTRODUCTION
-% ══════════════════════════════════════════════════════════════════════
 
 \section{Introduction}
 
-The availability of environmental DNA (eDNA) data has grown rapidly
-since the technique's first applications in vertebrate monitoring
-nearly two decades ago \citep{Ficetola2008}. By sequencing genetic
-material shed by organisms into their environment---water, soil,
-sediment, or air---researchers can detect species presence without
-physically capturing or even observing the organisms
-\citep{Taberlet2012, Deiner2017}. eDNA metabarcoding has proven
-effective for monitoring common, endangered, rare, and invasive
-species across marine, freshwater, and terrestrial ecosystems
-\citep{Bonfil2021, Larson2020, Pfleger2016}.
+The routine application of environmental DNA sampling for biodiversity surveys has expanded considerably since the foundational work of Ficetola et al.\ on amphibian detection from water samples \cite{ficetola2008}. Organisms continuously release genetic material into their surroundings through mucus, faeces, epidermal cells, and decomposition, and the recovery and sequencing of this material provides a non-invasive alternative to traditional capture-based monitoring \cite{taberlet2012, deiner2017}. The technique has demonstrated particular value for detecting rare and elusive species \cite{pfleger2016}, tracking invasive species spread \cite{larson2020}, and conducting broad-scale community assessments of aquatic and terrestrial ecosystems \cite{bonfil2021}.
 
-Software tools for processing eDNA amplicon data have matured
-considerably. QIIME\,2 \citep{Bolyen2019}, DADA2
-\citep{Callahan2016}, mothur \citep{Schloss2011}, vsearch
-\citep{Rognes2016}, OBITools \citep{Boyer2016}, and more recently
-SimpleMetaPipeline \citep{Williams2024} provide robust denoising,
-clustering, and taxonomic assignment capabilities. However, three
-gaps persist in the current landscape:
+The bioinformatics landscape for processing amplicon sequencing data has reached a reasonable level of maturity. Tools such as QIIME~2 \cite{bolyen2019}, DADA2 \cite{callahan2016}, mothur \cite{schloss2011}, and vsearch \cite{rognes2016} each provide reliable implementations of quality control, denoising, clustering, and taxonomic classification. More recent contributions including OBITools \cite{boyer2016} and SimpleMetaPipeline \cite{williams2024} have sought to lower the barrier to entry by wrapping multiple tools into streamlined workflows.
 
-\textbf{Conservation interpretation.} After obtaining a list of
-detected taxa, researchers must manually look up each species in the
-IUCN Red List, GBIF, or national protection schedules to assess
-conservation significance. No existing open eDNA pipeline automates
-this cross-referencing step, meaning conservation-relevant findings
-may be delayed or overlooked entirely \citep{Lee2024}.
+Despite this progress, three functional gaps remain unaddressed by any single existing platform.
 
-\textbf{Reproducibility documentation.} While workflow managers like
-Snakemake and Nextflow can record pipeline parameters, no
-eDNA-specific tool produces a self-contained, signed provenance
-manifest that records every input file hash, exact tool version,
-reference database version, and output hash in a format suitable for
-direct inclusion as supplementary material \citep{Powers2019,
-Sandve2013}.
+First, the step between obtaining a species list and understanding its conservation significance is entirely manual. Researchers who wish to determine whether their detections include threatened, endangered, or invasive species must individually query the IUCN Red List, GBIF occurrence databases, or national protection schedules. This manual process introduces delays and creates opportunities for oversight, particularly in large multi-sample studies \cite{lee2024}.
 
-\textbf{Citizen-science data submission.} eDNA monitoring is
-increasingly adopted by non-specialist organisations---schools, NGOs,
-dive clubs, and environmental agencies \citep{Larson2020}. These users
-need a guided workflow from sample upload to GBIF-ready Darwin Core
-Archive, without requiring bioinformatics expertise.
+Second, although workflow management systems such as Snakemake and Nextflow record execution parameters, no eDNA-specific tool generates a self-contained provenance manifest that captures input file checksums, exact software versions, reference database identities, and output hashes in a format ready for inclusion as supplementary material. The absence of such documentation has been identified as a contributing factor to reproducibility challenges in ecological research \cite{powers2019, sandve2013}.
 
-Here, we present \relict, an open-source platform that addresses all
-three gaps within a single integrated system. \relict{} wraps
-established, peer-reviewed bioinformatics tools (fastp, vsearch,
-scikit-bio) in a full-stack web application with a modern React
-frontend, a FastAPI backend, and a containerised worker architecture,
-adding conservation cross-referencing, provenance manifests, and
-Darwin Core Archive generation as first-class features.
+Third, citizen-science organisations and non-specialist monitoring groups increasingly collect eDNA samples but lack the technical infrastructure to convert raw sequencing output into standardised data submissions for global biodiversity databases. The Darwin Core Archive format required by GBIF \cite{gbif2023} involves specific file structures and controlled vocabularies that remain inaccessible without dedicated tooling.
 
-% ══════════════════════════════════════════════════════════════════════
-%  2. DESIGN PRINCIPLES
-% ══════════════════════════════════════════════════════════════════════
+This paper presents Relict, an integrated platform that addresses all three gaps within a single deployable system. The platform combines a containerised bioinformatics pipeline with a web-based interface, automated conservation cross-referencing, provenance manifest generation, and one-click export to GBIF-compatible formats.
 
-\section{Design Principles}
+\section{Design Rationale}
 
-\relict{} is built around eight principles that distinguish it from
-existing pipelines:
+The development of Relict was guided by eight engineering principles selected to address observed shortcomings in existing eDNA analysis workflows.
 
-\begin{enumerate}[leftmargin=2em, itemsep=0.3em]
-    \item \textbf{No mock data, ever.} Every number displayed to the
-    user is computed from real input by real tools.
+The first principle requires that no component of the system display fabricated or placeholder data under any circumstance. Every numerical value presented to users originates from actual computation on actual input.
 
-    \item \textbf{Version-pin everything.} Every external tool (fastp
-    0.24.0, vsearch 2.28.1), Python package (scikit-bio 0.6.2), and
-    reference database (SILVA\,138.1, MIDORI2 GenBank\,269) is pinned
-    to an exact version recorded in the provenance manifest.
+The second principle mandates exact version pinning for all external dependencies. Each tool binary (fastp 0.24.0, vsearch 2.28.1), each Python library (scikit-bio 0.6.2, umap-learn 0.5.7), and each reference database (SILVA 138.1, MIDORI2 GenBank 269) is locked to a specific release and recorded in the provenance manifest.
 
-    \item \textbf{Fail loudly.} When a pipeline stage encounters an
-    error, the system reports the real error message. It never
-    substitutes a placeholder result.
+The third principle specifies that pipeline failures must produce informative error messages rather than silent fallbacks or substitute results. If a reference database is missing or a tool returns a non-zero exit code, the system reports the actual error.
 
-    \item \textbf{Separate concerns.} The web server handles HTTP
-    only. All bioinformatics computation runs in a dedicated worker
-    container via a Redis-backed job queue.
+The fourth principle separates web request handling from bioinformatics computation. Long-running analyses execute in a dedicated worker container dispatched through a Redis-backed job queue, preventing pipeline execution from blocking the API server.
 
-    \item \textbf{Deterministic stages.} Two runs with identical
-    inputs and parameters produce identical outputs and identical
-    provenance hashes.
+The fifth principle enforces determinism: given identical input files and identical parameters, repeated executions must produce identical output files and identical provenance hashes.
 
-    \item \textbf{Conservation as a first-class output.} Every
-    detected taxon is automatically cross-referenced against GBIF and
-    the IUCN Red List during the pipeline run.
+The sixth principle treats conservation status as a first-class pipeline output rather than a post-hoc manual lookup. Species-level detections are automatically cross-referenced against GBIF and the IUCN Red List during every pipeline run.
 
-    \item \textbf{Reproducibility as a deliverable.} Every run
-    produces a signed JSON manifest suitable for supplementary
-    material.
+The seventh principle frames reproducibility documentation as a deliverable product of each analysis, not an optional annotation. Every run generates a signed manifest recording the complete chain of evidence.
 
-    \item \textbf{Citizen-science ready.} Results export as a
-    GBIF-compatible Darwin Core Archive with a single click.
-\end{enumerate}
-
-% ══════════════════════════════════════════════════════════════════════
-%  3. SYSTEM ARCHITECTURE
-% ══════════════════════════════════════════════════════════════════════
+The eighth principle ensures that analysis results can be exported as a GBIF-compatible Darwin Core Archive through a single user action, without requiring knowledge of the underlying data standard.
 
 \section{System Architecture}
 
-\subsection{Overview}
+\subsection{Service Composition}
 
-\relict{} is a full-stack web application composed of six services
-orchestrated via Docker Compose (Figure~\ref{fig:architecture}):
-a React\,18 frontend with TypeScript; a FastAPI (Python\,3.11) API
-server with JWT authentication and structured logging; a dedicated
-bioinformatics worker container with all pipeline tools
-pre-installed; PostgreSQL\,16 with nine tables managed by Alembic
-migrations; MinIO for S3-compatible object storage; and Redis\,7 for
-job queuing and WebSocket event channels.
+Relict operates as six Docker Compose services (Fig.~\ref{fig:architecture}). The frontend is implemented in React 18 with TypeScript, using Tailwind CSS for styling and React Query for server state management. The API server runs FastAPI on Python 3.11, authenticating users via JWT tokens with argon2id password hashing and logging structured JSON events through structlog. Bioinformatics tools reside in a separate worker container that polls a Redis Queue for pending jobs. PostgreSQL 16 stores user accounts, job metadata, amplicon sequence variants, taxonomy assignments, diversity metrics, conservation cache entries, and provenance records across nine relational tables managed through Alembic migrations. MinIO provides S3-compatible object storage for raw FASTQ files and pipeline output artefacts. Redis 7 serves dual roles as the job queue backend and as the publish-subscribe channel for real-time WebSocket progress events.
 
-% ─── Figure 1: Architecture diagram ─────────────────────────────────
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[node distance=1.2cm and 2cm]
-        % Frontend
-        \node[service, fill=blue!12, minimum width=5cm] (fe)
-            {\textbf{React 18 + TypeScript}\\Frontend};
-
-        % API
-        \node[service, fill=green!12, minimum width=5cm, below=of fe] (api)
-            {\textbf{FastAPI}\\REST + WebSocket};
-
-        % Row of services
-        \node[data, below left=1.5cm and 0.5cm of api] (pg)
-            {\textbf{PostgreSQL 16}};
-        \node[data, below=1.5cm of api] (redis)
-            {\textbf{Redis 7}};
-        \node[data, below right=1.5cm and 0.5cm of api] (minio)
-            {\textbf{MinIO}};
-
-        % Worker
-        \node[service, fill=orange!12, minimum width=5cm,
-              below=3.5cm of api] (worker)
-            {\textbf{RQ Worker}\\fastp, vsearch, scikit-bio,\\
-             umap-learn, hdbscan};
-
-        % External
-        \node[service, fill=red!8, minimum width=4cm,
-              right=2.5cm of worker] (ext)
-            {\textbf{External APIs}\\GBIF, IUCN Red List};
-
-        % Arrows
-        \draw[arrow] (fe) -- node[right, font=\footnotesize]
-            {HTTPS / WSS} (api);
-        \draw[arrow] (api) -- (pg);
-        \draw[arrow] (api) -- (redis);
-        \draw[arrow] (api) -- (minio);
-        \draw[arrow] (redis) -- node[left, font=\footnotesize]
-            {job queue} (worker);
-        \draw[arrow] (worker) -- (pg);
-        \draw[arrow] (worker) -- (minio);
-        \draw[arrow] (worker) -- (ext);
-    \end{tikzpicture}
-    \caption{System architecture of \relict. Six services are
-    orchestrated via Docker Compose. The frontend communicates with
-    the API server over HTTPS and WebSocket. Bioinformatics computation
-    runs in a dedicated worker container, isolated from HTTP request
-    handling. External API calls to GBIF and the IUCN Red List are
-    cached in PostgreSQL with a 30-day TTL.}
-    \label{fig:architecture}
+\begin{figure}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    font=\small,
+    arrow/.style={->, thick},
+    box/.style={rectangle, rounded corners=3pt, draw=black!70, align=center, minimum height=1cm, minimum width=3.2cm, very thick},
+    group/.style={rectangle, draw, dashed, rounded corners, inner sep=0.4cm}
+]
+\node[box, fill=blue!15] (fe) {React 18 + TypeScript\\Frontend};
+\node[box, fill=green!15, below=1.0cm of fe] (api) {FastAPI\\REST + WebSocket};
+\node[box, fill=orange!20, below left=1.8cm and 0.5cm of api] (pg) {PostgreSQL 16\\9 Tables};
+\node[box, fill=yellow!20, below=1.8cm of api] (redis) {Redis 7\\Queue + PubSub};
+\node[box, fill=purple!15, below right=1.8cm and 0.5cm of api] (minio) {MinIO\\Object Storage};
+\node[box, fill=red!15, below=3.8cm of api] (worker) {RQ Worker\\fastp, vsearch, scikit-bio\\umap-learn, hdbscan};
+\node[box, fill=gray!20, right=2.5cm of worker] (ext) {External APIs\\GBIF, IUCN Red List};
+\draw[arrow] (fe) -- node[right, font=\footnotesize]{HTTPS / WSS} (api);
+\draw[arrow] (api) -- (pg);
+\draw[arrow] (api) -- (redis);
+\draw[arrow] (api) -- (minio);
+\draw[arrow] (redis) -- node[left, font=\footnotesize]{job dispatch} (worker);
+\draw[arrow] (worker) -- (pg);
+\draw[arrow] (worker) -- (minio);
+\draw[arrow] (worker) -- (ext);
+\end{tikzpicture}
+}
+\caption{Service topology of the Relict platform. Six containers are orchestrated through Docker Compose. The worker container holds all bioinformatics binaries and communicates with external biodiversity APIs for conservation cross-referencing.}
+\label{fig:architecture}
 \end{figure}
 
-\subsection{The bioinformatics pipeline}
+\subsection{Pipeline Stages}
 
-The pipeline processes each uploaded FASTQ through seven stages
-(Figure~\ref{fig:pipeline}):
+Each uploaded FASTQ file is processed through seven sequential stages (Fig.~\ref{fig:pipeline}).
 
-% ─── Figure 2: Pipeline flow ────────────────────────────────────────
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[node distance=0.6cm]
-        \node[stage] (qc)
-            {\textbf{1. QC} --- fastp 0.24.0};
-        \node[stage, below=of qc] (derep)
-            {\textbf{2. Dereplication} --- vsearch 2.28.1};
-        \node[stage, below=of derep] (denoise)
-            {\textbf{3. ASV Inference} --- vsearch UNOISE3};
-        \node[stage, below=of denoise] (tax)
-            {\textbf{4. Taxonomy} --- vsearch vs.\ SILVA / MIDORI2};
-        \node[stage, fill=red!8, below=of tax] (cons)
-            {\textbf{5. Conservation} --- GBIF + IUCN Red List};
-        \node[stage, below=of cons] (div)
-            {\textbf{6. Diversity} --- scikit-bio 0.6.2};
-        \node[stage, below=of div] (ord)
-            {\textbf{7. Ordination} --- UMAP + HDBSCAN};
-        \node[stage, fill=yellow!15, below=of ord] (prov)
-            {\textbf{Provenance} --- signed manifest};
+\textbf{Stage 1: Quality Control.} The fastp tool (version 0.24.0) performs adapter auto-detection and removal, per-base quality filtering at a threshold of Phred $\geq$ 20, sliding window quality trimming, and minimum length enforcement at 50 base pairs. A machine-readable JSON report is generated recording pre- and post-filtering read counts, Q20/Q30 rates, and GC content.
 
-        \draw[arrow] (qc) -- (derep);
-        \draw[arrow] (derep) -- (denoise);
-        \draw[arrow] (denoise) -- (tax);
-        \draw[arrow] (tax) -- (cons);
-        \draw[arrow] (cons) -- (div);
-        \draw[arrow] (div) -- (ord);
-        \draw[arrow] (ord) -- (prov);
+\textbf{Stage 2: Dereplication.} Identical sequences are collapsed using vsearch \texttt{--fastx\_uniques} (version 2.28.1), with the observed abundance of each unique sequence recorded in the FASTA header as a \texttt{size=N} annotation. Sequences observed fewer than two times are discarded as likely artefacts.
 
-        % Annotations
-        \node[right=1.5cm of qc, font=\footnotesize\itshape,
-              text width=4.5cm] {Adapter trimming, Q$\geq$20 filter,
-              length filter};
-        \node[right=1.5cm of denoise, font=\footnotesize\itshape,
-              text width=4.5cm] {Amplicon sequence variants\\(error
-              correction)};
-        \node[right=1.5cm of cons, font=\footnotesize\itshape,
-              text width=4.5cm, text=red!60!black]
-              {\textbf{Novel:} automated GBIF +\\IUCN lookup per species};
-        \node[right=1.5cm of prov, font=\footnotesize\itshape,
-              text width=4.5cm, text=orange!60!black]
-              {\textbf{Novel:} input hashes, tool\\versions, SHA256 signature};
-    \end{tikzpicture}
-    \caption{The \relict{} bioinformatics pipeline. Seven stages
-    process raw FASTQ reads into annotated ASVs with conservation
-    status and diversity metrics. Stages 5 (conservation
-    cross-referencing) and the provenance manifest are novel
-    contributions not found in existing eDNA pipelines.}
-    \label{fig:pipeline}
+\textbf{Stage 3: ASV Inference.} The UNOISE3 algorithm \cite{edgar2016} implemented in vsearch \texttt{--cluster\_unoise} performs error correction on the dereplicated sequences to produce amplicon sequence variants representing biologically real sequence entities cleaned of PCR and sequencing noise.
+
+\textbf{Stage 4: Taxonomy Assignment.} Each ASV centroid is aligned against a version-pinned reference database using vsearch \texttt{--usearch\_global} with a minimum identity threshold of 80\%. The platform currently supports SILVA 138.1 SSU NR99 \cite{quast2013} (436,680 sequences) for 16S and 18S markers, and MIDORI2 GenBank 269 \cite{leray2022} for COI (1,801,886 sequences) and 12S (193,724 sequences) markers. Taxonomy is parsed from reference FASTA headers at seven standard ranks from kingdom through species.
+
+\textbf{Stage 5: Conservation Cross-Referencing.} For each species-level taxonomy assignment, the pipeline queries the GBIF Species API to resolve the canonical taxon name and retrieve global occurrence counts, then queries the GBIF-mirrored IUCN Red List endpoint to obtain the conservation category (LC, NT, VU, EN, CR, EW, or EX) and population trend where available. Results are cached in PostgreSQL with a 30-day time-to-live to limit external API load. The provenance manifest records the retrieval timestamp for each conservation record.
+
+\textbf{Stage 6: Diversity Metrics.} Alpha diversity indices are computed from the ASV abundance vector using scikit-bio (version 0.6.2): Shannon entropy ($H' = -\sum p_i \ln p_i$), Simpson index ($1 - \sum p_i^2$), Chao1 estimated richness, observed richness, and Pielou's evenness ($J' = H' / \ln S$).
+
+\textbf{Stage 7: Provenance Manifest.} A JSON document is generated recording every input file SHA256, all tool versions, the reference database identity, pipeline parameters as a deterministic hash, per-stage runtimes, and a SHA256 signature computed over the canonical (sorted, compact) JSON representation of the manifest body.
+
+\begin{figure}[t]
+\centering
+\resizebox{0.65\textwidth}{!}{%
+\begin{tikzpicture}[
+    font=\small,
+    node distance=0.55cm,
+    >=Stealth,
+    stage/.style={rectangle, rounded corners=3pt, draw=black!70, minimum width=4.2cm, minimum height=0.85cm, align=center, very thick},
+    arrow/.style={->, thick}
+]
+\node[stage, fill=blue!12] (qc) {\textbf{1. QC} -- fastp 0.24.0};
+\node[stage, fill=blue!12, below=of qc] (derep) {\textbf{2. Dereplication} -- vsearch 2.28.1};
+\node[stage, fill=blue!12, below=of derep] (denoise) {\textbf{3. ASV Inference} -- UNOISE3};
+\node[stage, fill=blue!12, below=of denoise] (tax) {\textbf{4. Taxonomy} -- SILVA / MIDORI2};
+\node[stage, fill=red!12, below=of tax] (cons) {\textbf{5. Conservation} -- GBIF + IUCN};
+\node[stage, fill=blue!12, below=of cons] (div) {\textbf{6. Diversity} -- scikit-bio};
+\node[stage, fill=yellow!15, below=of div] (prov) {\textbf{7. Provenance} -- SHA256 manifest};
+\draw[arrow] (qc) -- (derep);
+\draw[arrow] (derep) -- (denoise);
+\draw[arrow] (denoise) -- (tax);
+\draw[arrow] (tax) -- (cons);
+\draw[arrow] (cons) -- (div);
+\draw[arrow] (div) -- (prov);
+\end{tikzpicture}
+}
+\caption{Sequential pipeline stages. Stage 5 (conservation) queries external biodiversity databases for each detected taxon. Stage 7 produces a signed manifest recording all inputs, versions, and outputs.}
+\label{fig:pipeline}
 \end{figure}
 
-\subsection{Amplicon marker support}
+\subsection{Amplicon Marker Support}
 
-\relict{} ships with YAML preset configurations for six common
-amplicon markers (Table~\ref{tab:markers}).
+The platform ships with YAML-based preset configurations for six amplicon markers (Table~\ref{tab:markers}), each specifying primer sequences, expected amplicon length ranges, quality control parameters, denoising thresholds, taxonomy identity cutoffs, and the recommended reference database.
 
-\begin{table}[H]
-    \centering
-    \caption{Supported amplicon markers and their configurations.}
-    \label{tab:markers}
-    \small
-    \begin{tabularx}{\textwidth}{llclX}
-        \toprule
-        \textbf{Marker} & \textbf{Primers} & \textbf{bp} &
-        \textbf{Ref.\ DB} & \textbf{Target} \\
-        \midrule
-        16S V4   & 515F / 806R         & 200--350 & SILVA 138.1
-                 & Bacteria, Archaea \\
-        12S MiFish & MiFish-U-F/-R     & 163--185 & MIDORI2 srRNA
-                 & Fish, vertebrates \\
-        COI Leray  & mlCOIintF / jgHCO2198 & 280--340 & MIDORI2 CO1
-                 & Invertebrates \\
-        18S V9   & 1391F / EukBr       & 100--200 & SILVA 138.1
-                 & Eukaryotes \\
-        rbcL     & rbcLa-F/-R          & 500--600 & SILVA 138.1
-                 & Plants \\
-        ITS2     & fITS7 / ITS4        & 200--450 & SILVA 138.1
-                 & Fungi \\
-        \bottomrule
-    \end{tabularx}
+\begin{table}[t]
+\centering
+\caption{Supported amplicon markers and preset configurations.}
+\label{tab:markers}
+\begin{tabular}{llcll}
+\toprule
+\textbf{Marker} & \textbf{Primers} & \textbf{Length (bp)} & \textbf{Reference DB} & \textbf{Target Organisms} \\
+\midrule
+16S V4    & 515F / 806R           & 200--350 & SILVA 138.1      & Bacteria, Archaea \\
+12S MiFish & MiFish-U-F / -R      & 163--185 & MIDORI2 srRNA    & Fish, vertebrates \\
+COI Leray  & mlCOIintF / jgHCO2198 & 280--340 & MIDORI2 CO1     & Invertebrates \\
+18S V9    & 1391F / EukBr         & 100--200 & SILVA 138.1      & Eukaryotes \\
+rbcL      & rbcLa-F / -R          & 500--600 & SILVA 138.1      & Plants \\
+ITS2      & fITS7 / ITS4          & 200--450 & SILVA 138.1      & Fungi \\
+\bottomrule
+\end{tabular}
 \end{table}
 
-\subsection{Outputs and exports}
+\subsection{Output Formats}
 
-For each completed analysis, \relict{} provides:
-\begin{itemize}[itemsep=0.2em]
-    \item An \textbf{interactive web dashboard} with five tabs:
-    overview metrics, ASV table with taxonomy, conservation status
-    with IUCN badges, provenance manifest viewer, and export
-    downloads.
-    \item A \textbf{Darwin Core Archive} (DwC-A) conforming to the
-    GBIF DNA-derived data standard \citep{GBIF2023}.
-    \item A \textbf{CSV export} with ASV sequences, abundances,
-    taxonomy, and confidence.
-    \item A \textbf{BIOM\,2.1.0 JSON} file compatible with QIIME\,2
-    and phyloseq \citep{McMurdie2013}.
-    \item A \textbf{signed provenance manifest} with input hashes,
-    tool versions, stage timings, and SHA256 signature.
-\end{itemize}
+Each completed analysis produces five downloadable outputs through the web interface: an interactive dashboard displaying diversity metrics, taxonomy tables with IUCN conservation badges, and provenance details; a Darwin Core Archive conforming to the GBIF DNA-derived data publishing standard \cite{gbif2023}; a flat CSV containing ASV sequences, abundances, taxonomy assignments, and identity scores; a BIOM 2.1.0 JSON file compatible with QIIME~2 and phyloseq \cite{mcmurdie2013}; and the signed provenance manifest in JSON format.
 
-% ══════════════════════════════════════════════════════════════════════
-%  4. BENCHMARKING
-% ══════════════════════════════════════════════════════════════════════
+\section{Experimental Evaluation}
 
-\section{Benchmarking}
+\subsection{Synthetic Benchmark}
 
-\subsection{Synthetic known-composition benchmark}
+To verify computational correctness, a controlled dataset was constructed from 100 reads originating from five bacterial species (\textit{Escherichia coli}, \textit{Bacillus subtilis}, \textit{Staphylococcus aureus}, \textit{Pseudomonas aeruginosa}, \textit{Lactobacillus rhamnosus}) at uniform abundance of 20 reads per species. The sequences correspond to real 16S V4 amplicon regions extracted from GenBank accessions. Under these conditions, theoretically exact diversity metrics can be computed: Shannon entropy equals $\ln 5 \approx 1.6094$, Simpson index equals $1 - 1/5 = 0.8$, and Pielou's evenness equals unity.
 
-We validated \relict{} using a synthetic dataset of 100~reads from
-five known bacterial species (\textit{Escherichia coli},
-\textit{Bacillus subtilis}, \textit{Staphylococcus aureus},
-\textit{Pseudomonas aeruginosa}, \textit{Lactobacillus rhamnosus})
-at equal abundance (20~reads each). Sequences were real 16S V4
-amplicon regions from GenBank accessions. All 10~benchmark checks
-passed with mathematically exact results
-(Table~\ref{tab:synthetic}).
+All ten automated benchmark checks passed (Table~\ref{tab:synthetic}). The pipeline correctly identified five ASVs, assigned taxonomy to all five at genus level against SILVA 138.1, and resolved all five against GBIF.
 
-\begin{table}[H]
-    \centering
-    \caption{Synthetic benchmark results (10/10 passed).}
-    \label{tab:synthetic}
-    \small
-    \begin{tabular}{llll}
-        \toprule
-        \textbf{Check} & \textbf{Expected} & \textbf{Actual} &
-        \textbf{Status} \\
-        \midrule
-        ASV count           & 5               & 5               & Pass \\
-        Taxonomy assignment & 5/5 (100\%)     & 5/5             & Pass \\
-        Known genera        & $\geq$3 of 4    & 4/4             & Pass \\
-        Shannon index       & $\ln 5 = 1.6094$& 1.6094          & Pass \\
-        Simpson index       & 0.8000          & 0.8000          & Pass \\
-        Pielou's evenness   & 1.0000          & 1.0000          & Pass \\
-        Species richness    & 5               & 5               & Pass \\
-        Chao1               & 5.0             & 5.0             & Pass \\
-        GBIF resolution     & $\geq$3/5       & 5/5             & Pass \\
-        Provenance manifest & Valid SHA256     & Valid           & Pass \\
-        \bottomrule
-    \end{tabular}
+\begin{table}[t]
+\centering
+\caption{Synthetic benchmark results. All ten checks passed with expected values.}
+\label{tab:synthetic}
+\begin{tabular}{llll}
+\toprule
+\textbf{Metric} & \textbf{Expected} & \textbf{Observed} & \textbf{Result} \\
+\midrule
+ASV count             & 5                & 5               & Pass \\
+Taxonomy assignment   & 5/5 (100\%)      & 5/5             & Pass \\
+Known genera detected & $\geq$3 of 4     & 4/4             & Pass \\
+Shannon index ($H'$)  & $\ln 5 = 1.6094$ & 1.6094          & Pass \\
+Simpson index ($1-D$) & 0.8000           & 0.8000          & Pass \\
+Pielou's evenness     & 1.0000           & 1.0000          & Pass \\
+Species richness      & 5                & 5               & Pass \\
+Chao1 estimate        & 5.0              & 5.0             & Pass \\
+GBIF resolution       & $\geq$3/5        & 5/5             & Pass \\
+Provenance manifest   & Valid SHA256      & Valid           & Pass \\
+\bottomrule
+\end{tabular}
 \end{table}
 
-\subsection{Real SRA dataset benchmark}
+\subsection{Published Dataset Benchmark}
 
-We further validated the pipeline on ERR2283086, a published mock
-community dataset from the European Nucleotide Archive (45{,}204
-Illumina MiSeq reads, 151\,bp). The pipeline completed in
-215~seconds (3.6~minutes), detecting 51~ASVs with 100\% taxonomy
-assignment against SILVA\,138.1 (Table~\ref{tab:sra}).
+The pipeline was further evaluated on ERR2283086, a mock bacterial community dataset publicly available from the European Nucleotide Archive comprising 45,204 Illumina MiSeq paired-end reads at 151 base pairs. Processing completed in 215 seconds across all seven stages (Table~\ref{tab:sra}).
 
-\begin{table}[H]
-    \centering
-    \caption{SRA benchmark results (ERR2283086, published mock
-    community).}
-    \label{tab:sra}
-    \small
-    \begin{tabular}{ll}
-        \toprule
-        \textbf{Metric} & \textbf{Value} \\
-        \midrule
-        Input reads         & 45{,}204 \\
-        ASVs detected       & 51 \\
-        Taxonomy assigned   & 51/51 (100\%) \\
-        Shannon ($H'$)      & 2.585 \\
-        Simpson ($1-D$)     & 0.888 \\
-        Chao1               & 51.0 \\
-        Evenness ($J'$)     & 0.657 \\
-        Pipeline runtime    & 215\,s (3.6\,min) \\
-        Phyla detected      & 3 \\
-        Top genus           & \textit{Acinetobacter} (7{,}266 reads) \\
-        \bottomrule
-    \end{tabular}
+\begin{table}[t]
+\centering
+\caption{Performance on published SRA dataset ERR2283086 (mock community).}
+\label{tab:sra}
+\begin{tabular}{ll}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Input reads              & 45,204 \\
+ASVs detected            & 51 \\
+Taxonomy assignment rate & 51/51 (100\%) \\
+Reference identity       & 100\% (all top hits) \\
+Shannon entropy ($H'$)   & 2.585 \\
+Simpson index ($1-D$)    & 0.888 \\
+Chao1 estimated richness & 51.0 \\
+Pielou's evenness ($J'$) & 0.657 \\
+Pipeline runtime         & 215 s \\
+Phyla recovered          & 3 \\
+Dominant genus           & \textit{Acinetobacter} (7,266 reads) \\
+\bottomrule
+\end{tabular}
 \end{table}
 
-The recovered community included genera from three phyla
-(Proteobacteria, Firmicutes, Actinobacteriota) with ecologically
-plausible abundance distributions. All taxonomy assignments achieved
-100\% identity against SILVA\,138.1 reference sequences, and all
-detected species were successfully resolved against GBIF.
-
-% ══════════════════════════════════════════════════════════════════════
-%  5. ASSUMPTIONS AND LIMITATIONS
-% ══════════════════════════════════════════════════════════════════════
+The recovered community spanned three bacterial phyla (Proteobacteria, Firmicutes, Actinobacteriota) distributed across fifteen genera with ecologically plausible abundance patterns. All taxonomy assignments achieved 100\% identity against SILVA 138.1 reference sequences. The conservation cross-referencing module resolved all detected species against GBIF, returning IUCN status codes consistent with the bacterial taxa examined (NE, Not Evaluated, which is the correct designation for microbial species not within the scope of IUCN assessments).
 
 \section{Assumptions and Limitations}
 
-\relict{} inherits the well-documented limitations of eDNA
-metabarcoding itself: primer bias, PCR amplification artefacts,
-reference database incompleteness, and the inability to distinguish
-live from dead organisms \citep{Taberlet2012}. The platform does not
-address these biological limitations; it aims to make them more
-transparent through provenance documentation.
+The platform inherits the well-characterised biological limitations of eDNA metabarcoding: primer binding bias, differential PCR amplification, reference database gaps, and the inability to distinguish between DNA from living organisms and residual environmental DNA from deceased individuals \cite{taberlet2012}. Relict does not attempt to correct for these effects; it instead makes them transparent through comprehensive provenance documentation.
 
-The conservation cross-referencing layer depends on GBIF and IUCN API
-availability and data currency. External API responses are cached
-with a 30-day TTL, and the provenance manifest records the
-\texttt{fetched\_at} timestamp for every conservation record.
+The conservation cross-referencing component depends on the availability and currency of GBIF and IUCN data services. External API responses are cached locally with a thirty-day retention period, and the provenance manifest records the exact retrieval timestamp for each conservation record to allow users to assess potential staleness.
 
-The current implementation uses vsearch for ASV inference (UNOISE3
-algorithm). While DADA2 is considered the gold standard for Illumina
-error correction \citep{Callahan2016}, vsearch provides comparable
-accuracy at significantly higher speed and with simpler deployment
-requirements. DADA2 integration is planned for a future release.
+The current pipeline employs vsearch for ASV inference using the UNOISE3 algorithm. While DADA2 \cite{callahan2016} is generally considered the reference standard for Illumina error modelling, vsearch offers substantially faster processing with comparable output quality and considerably simpler deployment requirements. Integration of DADA2 as an alternative inference path is planned for a subsequent release.
 
-Taxonomy assignment quality depends on the completeness and accuracy
-of the reference database. Species-level assignments for
-underrepresented taxa should be interpreted with appropriate caution.
-
-% ══════════════════════════════════════════════════════════════════════
-%  6. SOFTWARE AVAILABILITY
-% ══════════════════════════════════════════════════════════════════════
+Taxonomy assignment accuracy is bounded by reference database completeness. Species-level identifications for taxa that are poorly represented in SILVA or MIDORI2 should be treated with appropriate caution, particularly for amplicon markers with limited phylogenetic resolution among closely related species.
 
 \section{Software Availability}
 
-\relict{} is freely available under the MIT licence. Source code,
-documentation, benchmark scripts, and amplicon preset configurations
-are available at
-\url{https://github.com/ShAuRyA-Noodle/Bad-Omens}. The platform
-requires Docker and Docker Compose for deployment. Reference
-databases (SILVA\,138.1, MIDORI2 GenBank\,269) are downloaded via a
-version-pinned script with SHA256 verification. A
-\texttt{CITATION.cff} file is provided for software citation.
-
-% ══════════════════════════════════════════════════════════════════════
-%  AUTHOR CONTRIBUTIONS
-% ══════════════════════════════════════════════════════════════════════
+Relict is distributed under the MIT licence. The complete source code, deployment configuration, reference database download scripts with SHA256 verification, benchmark datasets, amplicon preset files, and documentation are maintained at \url{https://github.com/ShAuRyA-Noodle/Bad-Omens}. Deployment requires Docker and Docker Compose. A machine-readable citation file (\texttt{CITATION.cff}) is included in the repository root.
 
 \subsection*{Author Contributions}
 
-Shaurya Punj conceived the project, designed and implemented the
-platform, conducted the benchmarking, and wrote the manuscript.
+Shaurya Punj conceived the project, designed the architecture, implemented all system components, conducted the experimental evaluation, and wrote this paper.
 
-% ══════════════════════════════════════════════════════════════════════
-%  DATA AVAILABILITY
-% ══════════════════════════════════════════════════════════════════════
+\subsection*{Data Availability}
 
-\subsection*{Data Availability Statement}
-
-The synthetic benchmark dataset is included in the repository. The
-SRA benchmark dataset (ERR2283086) is publicly available from the
-European Nucleotide Archive at
-\url{https://www.ebi.ac.uk/ena/browser/view/ERR2283086}. All
-benchmark results, including provenance manifests, are available in
-the \texttt{docs/benchmarks/} directory of the repository.
-
-% ══════════════════════════════════════════════════════════════════════
-%  ORCID
-% ══════════════════════════════════════════════════════════════════════
+The synthetic benchmark dataset is distributed with the source code. The SRA benchmark dataset ERR2283086 is publicly available from the European Nucleotide Archive at \url{https://www.ebi.ac.uk/ena/browser/view/ERR2283086}. Benchmark results and provenance manifests are archived in the \texttt{docs/benchmarks/} directory of the repository.
 
 \subsection*{ORCID}
 
-Shaurya Punj
-\href{https://orcid.org/0009-0000-7351-0237}{https://orcid.org/0009-0000-7351-0237}
+Shaurya Punj \quad \url{https://orcid.org/0009-0000-7351-0237}
 
-% ══════════════════════════════════════════════════════════════════════
-%  REFERENCES
-% ══════════════════════════════════════════════════════════════════════
+\bibliographystyle{splncs04}
 
-\bibliographystyle{apalike}
+\begin{thebibliography}{19}
 
-\begin{thebibliography}{99}
+\bibitem{bolyen2019}
+Bolyen, E., Rideout, J.R., Dillon, M.R., et al.: Reproducible, interactive, scalable and extensible microbiome data science using QIIME~2. Nature Biotechnology \textbf{37}, 852--857 (2019)
 
-\bibitem[Bolyen et~al., 2019]{Bolyen2019}
-Bolyen, E., Rideout, J.~R., Dillon, M.~R., et~al. (2019).
-Reproducible, interactive, scalable and extensible microbiome data
-science using QIIME\,2.
-\textit{Nature Biotechnology}, 37, 852--857.
+\bibitem{bonfil2021}
+Bonfil, R., Palacios-Barreto, P., Vargas, O.U.M., et al.: Detection of critically endangered marine species with dwindling populations using eDNA. Marine Biology \textbf{168}(5), 1--12 (2021)
 
-\bibitem[Bonfil et~al., 2021]{Bonfil2021}
-Bonfil, R., Palacios-Barreto, P., Vargas, O. U.~M., et~al. (2021).
-Detection of critically endangered marine species with dwindling
-populations using eDNA.
-\textit{Marine Biology}, 168(5), 1--12.
+\bibitem{boyer2016}
+Boyer, F., Mercier, C., Bonin, A., et al.: obitools: a unix-inspired software package for DNA metabarcoding. Molecular Ecology Resources \textbf{16}(1), 176--182 (2016)
 
-\bibitem[Boyer et~al., 2016]{Boyer2016}
-Boyer, F., Mercier, C., Bonin, A., et~al. (2016).
-obitools: a unix-inspired software package for DNA metabarcoding.
-\textit{Molecular Ecology Resources}, 16(1), 176--182.
+\bibitem{callahan2016}
+Callahan, B.J., McMurdie, P.J., Rosen, M.J., et al.: DADA2: High-resolution sample inference from Illumina amplicon data. Nature Methods \textbf{13}(7), 581--583 (2016)
 
-\bibitem[Callahan et~al., 2016]{Callahan2016}
-Callahan, B.~J., McMurdie, P.~J., Rosen, M.~J., et~al. (2016).
-DADA2: High-resolution sample inference from Illumina amplicon data.
-\textit{Nature Methods}, 13(7), 581--583.
+\bibitem{deiner2017}
+Deiner, K., Bik, H.M., M{\"a}chler, E., et al.: Environmental DNA metabarcoding: Transforming how we survey animal and plant communities. Molecular Ecology \textbf{26}(21), 5872--5895 (2017)
 
-\bibitem[Deiner et~al., 2017]{Deiner2017}
-Deiner, K., Bik, H.~M., M{\"a}chler, E., et~al. (2017).
-Environmental DNA metabarcoding: Transforming how we survey animal
-and plant communities.
-\textit{Molecular Ecology}, 26(21), 5872--5895.
+\bibitem{edgar2016}
+Edgar, R.C.: UNOISE2: improved error-correction for Illumina 16S and ITS amplicon sequencing. bioRxiv, 081257 (2016)
 
-\bibitem[Ficetola et~al., 2008]{Ficetola2008}
-Ficetola, G.~F., Miaud, C., Pompanon, F., \& Taberlet, P. (2008).
-Species detection using environmental DNA from water samples.
-\textit{Biology Letters}, 4(4), 423--425.
+\bibitem{ficetola2008}
+Ficetola, G.F., Miaud, C., Pompanon, F., Taberlet, P.: Species detection using environmental DNA from water samples. Biology Letters \textbf{4}(4), 423--425 (2008)
 
-\bibitem[GBIF, 2023]{GBIF2023}
-GBIF Secretariat (2023).
-Publishing DNA-derived data through biodiversity data platforms.
-\url{https://docs.gbif.org/publishing-dna-derived-data/en/}
+\bibitem{gbif2023}
+GBIF Secretariat: Publishing DNA-derived data through biodiversity data platforms. \url{https://docs.gbif.org/publishing-dna-derived-data/en/} (2023)
 
-\bibitem[Larson et~al., 2020]{Larson2020}
-Larson, E.~R., Graham, B.~M., Achury, R., et~al. (2020).
-From eDNA to citizen science: Emerging tools for the early detection
-of invasive species.
-\textit{Frontiers in Ecology and the Environment}, 18(4), 194--202.
+\bibitem{larson2020}
+Larson, E.R., Graham, B.M., Achury, R., et al.: From eDNA to citizen science: Emerging tools for the early detection of invasive species. Frontiers in Ecology and the Environment \textbf{18}(4), 194--202 (2020)
 
-\bibitem[Lee et~al., 2024]{Lee2024}
-Lee, K.~N., Kelly, R.~P., Demir-Hilton, E., et~al. (2024).
-Adoption of environmental DNA in public agency practice.
-\textit{Environmental DNA}, 6(1), 1--14.
+\bibitem{lee2024}
+Lee, K.N., Kelly, R.P., Demir-Hilton, E., et al.: Adoption of environmental DNA in public agency practice. Environmental DNA \textbf{6}(1), 1--14 (2024)
 
-\bibitem[Leray et~al., 2022]{Leray2022}
-Leray, M., Knowlton, N., \& Machida, R.~J. (2022).
-MIDORI2: A collection of quality-controlled, preformatted, and
-regularly updated reference databases for taxonomic assignment of
-eukaryotic mitochondrial sequences.
-\textit{Environmental DNA}, 4(4), 894--907.
+\bibitem{leray2022}
+Leray, M., Knowlton, N., Machida, R.J.: MIDORI2: A collection of quality-controlled, preformatted, and regularly updated reference databases for taxonomic assignment of eukaryotic mitochondrial sequences. Environmental DNA \textbf{4}(4), 894--907 (2022)
 
-\bibitem[McMurdie \& Holmes, 2013]{McMurdie2013}
-McMurdie, P.~J. \& Holmes, S. (2013).
-phyloseq: An R package for reproducible interactive analysis and
-graphics of microbiome census data.
-\textit{PLoS ONE}, 8(4), e61217.
+\bibitem{mcmurdie2013}
+McMurdie, P.J., Holmes, S.: phyloseq: An R package for reproducible interactive analysis and graphics of microbiome census data. PLoS ONE \textbf{8}(4), e61217 (2013)
 
-\bibitem[Pfleger et~al., 2016]{Pfleger2016}
-Pfleger, M.~O., Rider, S.~J., Johnston, C.~E., \& Janosik, A.~M.
-(2016). Saving the doomed: Using eDNA to aid in detection of rare
-sturgeon for conservation.
-\textit{Global Ecology and Conservation}, 8, 99--107.
+\bibitem{pfleger2016}
+Pfleger, M.O., Rider, S.J., Johnston, C.E., Janosik, A.M.: Saving the doomed: Using eDNA to aid in detection of rare sturgeon for conservation. Global Ecology and Conservation \textbf{8}, 99--107 (2016)
 
-\bibitem[Powers \& Hampton, 2019]{Powers2019}
-Powers, S.~M. \& Hampton, S.~E. (2019).
-Open science, reproducibility, and transparency in ecology.
-\textit{Ecological Applications}, 29(1), e01822.
+\bibitem{powers2019}
+Powers, S.M., Hampton, S.E.: Open science, reproducibility, and transparency in ecology. Ecological Applications \textbf{29}(1), e01822 (2019)
 
-\bibitem[Quast et~al., 2013]{Quast2013}
-Quast, C., Pruesse, E., Yilmaz, P., et~al. (2013).
-The SILVA ribosomal RNA gene database project: Improved data
-processing and web-based tools.
-\textit{Nucleic Acids Research}, 41(D1), D590--D596.
+\bibitem{quast2013}
+Quast, C., Pruesse, E., Yilmaz, P., et al.: The SILVA ribosomal RNA gene database project: Improved data processing and web-based tools. Nucleic Acids Research \textbf{41}(D1), D590--D596 (2013)
 
-\bibitem[Rognes et~al., 2016]{Rognes2016}
-Rognes, T., Flouri, T., Nichols, B., Quince, C., \& Mah{\'e}, F.
-(2016). VSEARCH: A versatile open source tool for metagenomics.
-\textit{PeerJ}, 4, e2584.
+\bibitem{rognes2016}
+Rognes, T., Flouri, T., Nichols, B., Quince, C., Mah{\'e}, F.: VSEARCH: A versatile open source tool for metagenomics. PeerJ \textbf{4}, e2584 (2016)
 
-\bibitem[Sandve et~al., 2013]{Sandve2013}
-Sandve, G.~K., Nekrutenko, A., Taylor, J., \& Hovig, E. (2013).
-Ten simple rules for reproducible computational research.
-\textit{PLoS Computational Biology}, 9(10), e1003285.
+\bibitem{sandve2013}
+Sandve, G.K., Nekrutenko, A., Taylor, J., Hovig, E.: Ten simple rules for reproducible computational research. PLoS Computational Biology \textbf{9}(10), e1003285 (2013)
 
-\bibitem[Schloss \& Westcott, 2011]{Schloss2011}
-Schloss, P.~D. \& Westcott, S.~L. (2011).
-Assessing and improving methods used in operational taxonomic
-unit-based approaches for 16S rRNA gene sequence analysis.
-\textit{Applied and Environmental Microbiology}, 77, 3219--3226.
+\bibitem{schloss2011}
+Schloss, P.D., Westcott, S.L.: Assessing and improving methods used in operational taxonomic unit-based approaches for 16S rRNA gene sequence analysis. Applied and Environmental Microbiology \textbf{77}, 3219--3226 (2011)
 
-\bibitem[Taberlet et~al., 2012]{Taberlet2012}
-Taberlet, P., Coissac, E., Hajibabaei, M., \& Rieseberg, L.~H.
-(2012). Environmental DNA.
-\textit{Molecular Ecology}, 21(8), 1789--1793.
+\bibitem{taberlet2012}
+Taberlet, P., Coissac, E., Hajibabaei, M., Rieseberg, L.H.: Environmental DNA. Molecular Ecology \textbf{21}(8), 1789--1793 (2012)
 
-\bibitem[Williams et~al., 2024]{Williams2024}
-Williams, J., Pettorelli, N., Dowell, R., et~al. (2024).
-SimpleMetaPipeline: Breaking the bioinformatics bottleneck in
-metabarcoding.
-\textit{Methods in Ecology and Evolution}, 15, 1949--1957.
+\bibitem{williams2024}
+Williams, J., Pettorelli, N., Dowell, R., et al.: SimpleMetaPipeline: Breaking the bioinformatics bottleneck in metabarcoding. Methods in Ecology and Evolution \textbf{15}, 1949--1957 (2024)
 
 \end{thebibliography}
 
