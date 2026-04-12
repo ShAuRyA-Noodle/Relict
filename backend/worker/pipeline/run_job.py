@@ -74,10 +74,12 @@ def _detect_reference_db(amplicon: str) -> Path | None:
     candidates: dict[str, list[Path]] = {
         "16S_V4": [
             silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.udb",
+            silva_dir / "silva_138_99_merged.fasta",
             silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.fasta",
         ],
         "18S_V9": [
             silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.udb",
+            silva_dir / "silva_138_99_merged.fasta",
             silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.fasta",
         ],
         "12S_MiFish": [

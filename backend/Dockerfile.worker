@@ -30,17 +30,22 @@ ARG VSEARCH_VERSION=2.28.1
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      wget ca-certificates xz-utils \
+      curl ca-certificates xz-utils build-essential git zlib1g-dev \
+      libisal-dev libdeflate-dev \
  && rm -rf /var/lib/apt/lists/*
 
-# fastp — single static binary
-RUN wget -qO /usr/local/bin/fastp \
-      "https://github.com/OpenGene/fastp/releases/download/v${FASTP_VERSION}/fastp" \
+# fastp — build from source (no pre-built binaries available since 2024)
+RUN git clone --depth 1 --branch "v${FASTP_VERSION}" \
+      https://github.com/OpenGene/fastp.git /tmp/fastp \
+ && cd /tmp/fastp \
+ && make -j"$(nproc)" \
+ && cp fastp /usr/local/bin/fastp \
  && chmod +x /usr/local/bin/fastp \
- && fastp --version
+ && fastp --version \
+ && rm -rf /tmp/fastp
 
-# vsearch — download the pre-built linux-x86_64 binary
-RUN wget -qO /tmp/vsearch.tar.gz \
+# vsearch — pre-built linux-x86_64 binary from GitHub releases
+RUN curl -fsSL -o /tmp/vsearch.tar.gz \
       "https://github.com/torognes/vsearch/releases/download/v${VSEARCH_VERSION}/vsearch-${VSEARCH_VERSION}-linux-x86_64.tar.gz" \
  && tar xzf /tmp/vsearch.tar.gz -C /tmp \
  && cp /tmp/vsearch-${VSEARCH_VERSION}-linux-x86_64/bin/vsearch /usr/local/bin/vsearch \
@@ -75,6 +80,7 @@ RUN pip install --upgrade pip setuptools wheel \
  && pip install \
       biopython==1.84 \
       scikit-bio==0.6.2 \
+      scikit-learn==1.5.2 \
       umap-learn==0.5.7 \
       hdbscan==0.8.40 \
       cutadapt==4.9 \
@@ -90,13 +96,17 @@ FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
-    APP_HOME=/app
+    APP_HOME=/app \
+    NUMBA_CACHE_DIR=/tmp/numba_cache \
+    MPLCONFIGDIR=/tmp/matplotlib
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       libpq5 \
       libgomp1 \
       libopenblas0 \
+      libisal2 \
+      libdeflate0 \
       tini \
       curl \
  && rm -rf /var/lib/apt/lists/* \

@@ -32,7 +32,7 @@ def run(
     params: DerepParams | None = None,
     logger: Any = None,
 ) -> StageResult:
-    """Dereplicate ``input_fastq`` using vsearch --derep_fulllength."""
+    """Dereplicate ``input_fastq`` using vsearch --fastx_uniques."""
     if params is None:
         params = DerepParams()
 
@@ -41,12 +41,12 @@ def run(
 
     cmd = [
         "vsearch",
-        "--derep_fulllength", str(input_fastq),
-        "--output", str(unique_fasta),
-        "--sizeout",                 # append ;size=N to headers
+        "--fastx_uniques", str(input_fastq),
+        "--fastaout", str(unique_fasta),   # --fastx_uniques uses --fastaout, not --output
+        "--sizeout",                       # append ;size=N to headers
         "--minuniquesize", str(params.min_unique_size),
         "--threads", str(params.threads),
-        "--fasta_width", "0",        # no line wrapping in output FASTA
+        "--fasta_width", "0",              # no line wrapping in output FASTA
     ]
 
     if logger:
@@ -63,7 +63,7 @@ def run(
     if result.returncode != 0:
         raise StageError(
             "derep",
-            f"vsearch --derep_fulllength exited with code {result.returncode}",
+            f"vsearch --fastx_uniques exited with code {result.returncode}",
             stderr=result.stderr[-2000:],
         )
 

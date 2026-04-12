@@ -56,7 +56,10 @@ class StageError(Exception):
     def __init__(self, stage_name: str, message: str, stderr: str = "") -> None:
         self.stage_name = stage_name
         self.stderr = stderr
-        super().__init__(f"[{stage_name}] {message}")
+        full = f"[{stage_name}] {message}"
+        if stderr:
+            full += f"\nstderr: {stderr[-500:]}"
+        super().__init__(full)
 
 
 class StageTimer:

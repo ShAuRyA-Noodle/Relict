@@ -97,37 +97,36 @@ def save_versions(versions: dict[str, dict[str, str]]) -> None:
 
 
 def download_file(url: str, dest: Path) -> None:
-    """Download with a simple progress indicator."""
+    """Download using curl (handles Windows TLS natively) with a progress bar."""
     print(f"  Downloading {url}")
-    print(f"  → {dest}")
+    print(f"  -> {dest}")
+    dest.parent.mkdir(parents=True, exist_ok=True)
 
-    req = urllib.request.Request(url, headers={"User-Agent": "Relict/0.1.0"})
-    with urllib.request.urlopen(req, timeout=300) as resp:  # noqa: S310
-        total = resp.headers.get("Content-Length")
-        total_mb = f"{int(total) / 1024 / 1024:.1f} MB" if total else "unknown size"
-        print(f"  Size: {total_mb}")
+    # Prefer curl — it uses the OS certificate store (Schannel on Windows)
+    # which avoids the SSL cert errors that Python's urllib often hits.
+    result = subprocess.run(
+        ["curl", "-fSL", "--progress-bar", "-o", str(dest), url],
+        check=False,
+    )
+    if result.returncode != 0:
+        # Fallback to Python urllib if curl is not available
+        print("  curl failed, falling back to urllib...")
+        import ssl
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        req = urllib.request.Request(url, headers={"User-Agent": "Relict/0.1.0"})
+        with urllib.request.urlopen(req, timeout=600, context=ctx) as resp:  # noqa: S310
+            with open(dest, "wb") as out:
+                shutil.copyfileobj(resp, out)
 
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        downloaded = 0
-        with open(dest, "wb") as out:
-            while True:
-                chunk = resp.read(1024 * 1024)
-                if not chunk:
-                    break
-                out.write(chunk)
-                downloaded += len(chunk)
-                mb = downloaded / 1024 / 1024
-                if total:
-                    pct = downloaded / int(total) * 100
-                    print(f"\r  {mb:.1f} MB / {total_mb} ({pct:.0f}%)", end="", flush=True)
-                else:
-                    print(f"\r  {mb:.1f} MB", end="", flush=True)
-        print()
+    size_mb = dest.stat().st_size / 1024 / 1024
+    print(f"  Downloaded: {size_mb:.1f} MB")
 
 
 def decompress_gz(src: Path, dest: Path) -> None:
     """Decompress a .gz file."""
-    print(f"  Decompressing {src.name} → {dest.name}")
+    print(f"  Decompressing {src.name} -> {dest.name}")
     with gzip.open(src, "rb") as f_in, open(dest, "wb") as f_out:
         shutil.copyfileobj(f_in, f_out)
     print(f"  Done. Size: {dest.stat().st_size / 1024 / 1024:.1f} MB")
@@ -260,7 +259,7 @@ def process_db(key: str, db: RefDB, versions: dict[str, dict[str, str]], *, forc
     if db.build_udb and shutil.which("vsearch"):
         build_vsearch_udb(decompressed)
 
-    print(f"  ✓ {db.name} ready")
+    print(f"  [OK] {db.name} ready")
     return True
 
 
@@ -297,7 +296,7 @@ def main() -> int:
     print("  Summary")
     print(f"{'=' * 60}")
     for key, ok in results.items():
-        status = "✓ ready" if ok else "✗ FAILED"
+        status = "[OK] ready" if ok else "[FAIL] FAILED"
         print(f"  {key:12s}  {status}")
 
     if VERSIONS_FILE.exists():
