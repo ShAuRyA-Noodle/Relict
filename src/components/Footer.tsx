@@ -39,7 +39,7 @@ export const Footer = () => {
             <div className="flex space-x-4">
               {/* GitHub Icon → Repo */}
               <a
-                href="https://github.com/ShAuRyA-Noodle/The-Chainsmokers"
+                href="https://github.com/ShAuRyA-Noodle/Bad-Omens"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-off-white/60 hover:text-emerald transition-colors"

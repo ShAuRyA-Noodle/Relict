@@ -210,7 +210,7 @@ and an [NCBI Entrez](https://www.ncbi.nlm.nih.gov/account/) API key.
 ## 📁 Project Structure
 
 ```
-The-Chainsmokers/
+Bad-Omens/
 ├── src/                   # React + TypeScript frontend (real, working)
 ├── backend/               # FastAPI + worker + pipeline (being rebuilt)
 ├── docs/                  # Design & planning documents (real, canonical)

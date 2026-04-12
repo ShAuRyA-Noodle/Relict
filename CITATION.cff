@@ -12,8 +12,8 @@ authors:
   - family-names: "Punj"
     given-names: "Shaurya"
     # orcid: "https://orcid.org/0000-0000-0000-0000"  # fill in after registering at https://orcid.org/
-repository-code: "https://github.com/ShAuRyA-Noodle/The-Chainsmokers"
-url: "https://github.com/ShAuRyA-Noodle/The-Chainsmokers"
+repository-code: "https://github.com/ShAuRyA-Noodle/Bad-Omens"
+url: "https://github.com/ShAuRyA-Noodle/Bad-Omens"
 license: MIT
 version: "0.1.0-dev"
 date-released: 2026-04-12
@@ -35,4 +35,4 @@ preferred-citation:
     - family-names: "Punj"
       given-names: "Shaurya"
   year: 2026
-  url: "https://github.com/ShAuRyA-Noodle/The-Chainsmokers"
+  url: "https://github.com/ShAuRyA-Noodle/Bad-Omens"
