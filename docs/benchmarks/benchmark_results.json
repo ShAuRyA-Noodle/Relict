@@ -1,0 +1,78 @@
+[
+  {
+    "name": "16S_V4_Known_Composition",
+    "passed": true,
+    "results": [
+      {
+        "name": "asv_count",
+        "passed": true,
+        "metric": "Number of ASVs",
+        "expected": "5",
+        "actual": "5"
+      },
+      {
+        "name": "taxonomy_assignment_rate",
+        "passed": true,
+        "metric": "Taxonomy assignment rate",
+        "expected": "100% (5/5)",
+        "actual": "5/5"
+      },
+      {
+        "name": "genus_detection",
+        "passed": true,
+        "metric": "Known genera detected",
+        "expected": ">= 3 of {'Escherichia-Shigella', 'Enterococcus', 'Bacillus', 'Pseudomonas'}",
+        "actual": "4: {'Escherichia-Shigella', 'Enterococcus', 'Bacillus', 'Pseudomonas'}"
+      },
+      {
+        "name": "shannon_index",
+        "passed": true,
+        "metric": "Shannon diversity index",
+        "expected": "1.609438 (ln(5) for 5 equal-abundance taxa)",
+        "actual": "1.609438"
+      },
+      {
+        "name": "evenness",
+        "passed": true,
+        "metric": "Pielou's evenness",
+        "expected": "1.0 (perfectly even abundance)",
+        "actual": "1.000000"
+      },
+      {
+        "name": "richness",
+        "passed": true,
+        "metric": "Species richness",
+        "expected": "5",
+        "actual": "5"
+      },
+      {
+        "name": "simpson_index",
+        "passed": true,
+        "metric": "Simpson diversity index",
+        "expected": "0.8 (1 - 1/5 for 5 equal-abundance taxa)",
+        "actual": "0.800000"
+      },
+      {
+        "name": "chao1",
+        "passed": true,
+        "metric": "Chao1 estimated richness",
+        "expected": "5.0 (no singletons = observed richness)",
+        "actual": "5.0000"
+      },
+      {
+        "name": "gbif_resolution",
+        "passed": true,
+        "metric": "Species resolved in GBIF",
+        "expected": ">= 3 of 5",
+        "actual": "5/5"
+      },
+      {
+        "name": "provenance_exists",
+        "passed": true,
+        "metric": "Provenance manifest generated",
+        "expected": "64-char SHA256 hash",
+        "actual": "3b54c4292093399a..."
+      }
+    ]
+  }
+]
