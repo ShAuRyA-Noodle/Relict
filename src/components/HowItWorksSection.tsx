@@ -13,7 +13,7 @@ const pipelineSteps = [
     output: "142,305 reads ingested [status: ok]",
   },
   {
-    id: "STEP_02", 
+    id: "STEP_02",
     command: "> py inference.py --model dna-bert-v2 --parallel",
     title: "AI_INFERENCE",
     description: "Transformer arrays map taxonomic barcodes. High-dimensional embeddings cluster ecological features.",
@@ -23,7 +23,7 @@ const pipelineSteps = [
   {
     id: "STEP_03",
     command: "> curl -X POST https://api.ncbi /align",
-    title: "DB_ALIGNMENT", 
+    title: "DB_ALIGNMENT",
     description: "Asynchronous requests to globally distributed curated bio-databases establish definitive lineage constraints.",
     icon: Server,
     output: "NCBI connected. SILVA mapped.",
@@ -40,16 +40,16 @@ const pipelineSteps = [
 
 export const HowItWorksSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start center", "end end"]
   });
 
   return (
-    <section 
-      ref={containerRef} 
-      id="pipeline" 
+    <section
+      ref={containerRef}
+      id="pipeline"
       className="relative bg-transparent border-t border-white/5 py-24 sm:py-32"
     >
       <div className="container mx-auto px-4 md:px-8 relative z-10 w-full max-w-5xl">
@@ -67,7 +67,7 @@ export const HowItWorksSection = () => {
         <div className="relative pl-8 sm:pl-16">
           {/* Main descending pipeline trace line */}
           <div className="absolute top-0 left-[15px] sm:left-[31px] w-[2px] h-full bg-white/10 z-0">
-            <motion.div 
+            <motion.div
               className="absolute top-0 left-0 w-full bg-primary"
               style={{ scaleY: scrollYProgress, transformOrigin: "top" }}
             />
@@ -77,27 +77,27 @@ export const HowItWorksSection = () => {
             {pipelineSteps.map((step, index) => {
               // We reveal the nodes based on scroll depth
               const isActive = useTransform(
-                scrollYProgress, 
-                [0, Math.min(1, index * 0.25), Math.min(1, (index + 0.5) * 0.25)], 
+                scrollYProgress,
+                [0, Math.min(1, index * 0.25), Math.min(1, (index + 0.5) * 0.25)],
                 [0, 0, 1]
               );
-              
+
               const yOffset = useTransform(
                 scrollYProgress,
-                [0, Math.min(1, index * 0.25), Math.min(1, (index + 0.5) * 0.25)], 
+                [0, Math.min(1, index * 0.25), Math.min(1, (index + 0.5) * 0.25)],
                 [50, 50, 0]
               );
 
               return (
                 <div key={step.id} className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8">
                   {/* The Node Connection Point */}
-                  <motion.div 
+                  <motion.div
                     className="absolute -left-[30px] sm:-left-[46px] top-6 w-[30px] h-[30px] rounded-sm border-2 bg-background flex items-center justify-center z-20"
                     style={{
                       borderColor: useTransform(isActive, (v) => v > 0.5 ? "hsl(var(--primary))" : "rgba(255,255,255,0.2)"),
                     }}
                   >
-                    <motion.div 
+                    <motion.div
                       className="w-[10px] h-[10px]"
                       style={{
                         backgroundColor: useTransform(isActive, (v) => v > 0.5 ? "hsl(var(--primary))" : "transparent"),
@@ -106,7 +106,7 @@ export const HowItWorksSection = () => {
                   </motion.div>
 
                   {/* Step ID / Execution Context */}
-                  <motion.div 
+                  <motion.div
                     style={{ opacity: isActive, y: yOffset }}
                     className="font-mono text-sm"
                   >
@@ -119,7 +119,7 @@ export const HowItWorksSection = () => {
                   </motion.div>
 
                   {/* Terminal Execution Window */}
-                  <motion.div 
+                  <motion.div
                     style={{ opacity: isActive, y: yOffset }}
                     className="w-full"
                   >
@@ -133,7 +133,7 @@ export const HowItWorksSection = () => {
                           <span className="text-secondary">{step.command.split(" ")[0]} </span>
                           <span>{step.command.substring(step.command.indexOf(" ") + 1)}</span>
                         </div>
-                        <motion.div 
+                        <motion.div
                           className="pt-4 text-neon-green"
                           initial={{ opacity: 0 }}
                           whileInView={{ opacity: 1 }}
@@ -142,14 +142,14 @@ export const HowItWorksSection = () => {
                         >
                           {step.output}
                         </motion.div>
-                        <motion.div 
+                        <motion.div
                           className="w-2 h-4 bg-gray-500"
                           animate={{ opacity: [1, 0, 1] }}
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                         />
                       </div>
                     </div>
-                    
+
                     {/* Mobile description fallback */}
                     <div className="md:hidden mt-4 text-xs font-mono text-gray-400 border-l border-primary/50 pl-3">
                       {step.description}

@@ -80,16 +80,16 @@ export const CredibilitySection = () => {
                   <div className="text-xs text-gray-400 mb-1">TOTAL_REFERENCE_SEQUENCES</div>
                   <div className="text-3xl font-bold text-white flex items-baseline">
                     <span className="text-neon-cyan mr-1">&gt;</span>
-                    <Counter from={0} to={65} />
-                    <span className="text-primary text-lg ml-2">M+</span>
+                    <Counter from={0} to={2.4} decimal />
+                    <span className="text-primary text-lg ml-2">M</span>
                   </div>
                 </div>
-                
+
                 <div>
-                  <div className="text-xs text-gray-400 mb-1">TAXONOMIC_PRECISION_LIMIT</div>
+                  <div className="text-xs text-gray-400 mb-1">BENCHMARK_ASSIGNMENT_RATE</div>
                   <div className="text-3xl font-bold text-white flex items-baseline">
                     <span className="text-neon-cyan mr-1">&gt;</span>
-                    <Counter from={80} to={99.8} decimal />
+                    <Counter from={80} to={100} />
                     <span className="text-primary text-lg ml-2">%</span>
                   </div>
                 </div>

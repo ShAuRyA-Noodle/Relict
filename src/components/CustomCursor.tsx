@@ -17,13 +17,13 @@ export default function CustomCursor() {
       cursorX.set(e.clientX - 16) // center offset (32/2)
       cursorY.set(e.clientY - 16)
     }
-    
+
     const handleTagHover = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (
-        target.tagName.toLowerCase() === "a" || 
+        target.tagName.toLowerCase() === "a" ||
         target.tagName.toLowerCase() === "button" ||
-        target.closest("a") || 
+        target.closest("a") ||
         target.closest("button")
       ) {
         setHovered(true)

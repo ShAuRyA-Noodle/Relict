@@ -66,8 +66,8 @@ export const Header = () => {
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
-          <Link 
-            to="/contact" 
+          <Link
+            to="/contact"
             className="btn-cyber px-4 py-2 text-xs flex items-center"
           >
             <Dna className="w-3 h-3 mr-2" />
@@ -113,8 +113,8 @@ export const Header = () => {
                 </Link>
               ))}
               <div className="pt-4 border-t border-white/10">
-                <Link 
-                  to="/contact" 
+                <Link
+                  to="/contact"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="text-primary w-full block text-center border border-primary py-3 hover:bg-primary/20"
                 >

@@ -35,7 +35,7 @@ export const HeroSection = () => {
 
   return (
     <section ref={containerRef} className="relative min-h-screen flex items-center justify-center overflow-hidden bg-transparent pt-20 scanline">
-      
+
       {/* HUD Crosshairs */}
       <div className="absolute top-24 left-8 w-4 h-4 border-t-2 border-l-2 border-secondary z-0 opacity-50"></div>
       <div className="absolute top-24 right-8 w-4 h-4 border-t-2 border-r-2 border-secondary z-0 opacity-50"></div>
@@ -43,14 +43,14 @@ export const HeroSection = () => {
       <div className="absolute bottom-8 right-8 w-4 h-4 border-b-2 border-r-2 border-secondary z-0 opacity-50"></div>
 
       {/* Streaming DNA Background */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0 z-0 pointer-events-none opacity-10 font-mono text-[10px] sm:text-xs leading-none overflow-hidden text-primary select-none whitespace-pre-wrap break-all px-8 pb-8 pt-32 text-justify"
         style={{ y: backgroundY }}
       >
         {Array.from({ length: 1500 }).map((_, i) => DNA_BASES[(i + sequenceOffset) % 4]).join('')}
       </motion.div>
 
-      <motion.div 
+      <motion.div
         className="container mx-auto px-4 sm:px-8 relative z-10 w-full"
         style={{ opacity: mainOpacity }}
       >
@@ -70,14 +70,14 @@ export const HeroSection = () => {
             {/* Blinking Cursor Box Logo */}
             <div className="mb-8 flex items-center space-x-2">
               <span className="text-secondary font-mono text-sm">&gt; SYSTEM_INITIALIZED</span>
-              <motion.div 
+              <motion.div
                 className="w-2 h-4 bg-secondary"
                 animate={{ opacity: [1, 0, 1] }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               />
             </div>
 
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
@@ -86,9 +86,9 @@ export const HeroSection = () => {
               Parse the <br />
               <span className="text-neon-cyan">Biosphere.</span>
             </motion.h1>
-            
+
             <p className="font-mono text-gray-400 max-w-xl text-sm sm:text-base leading-relaxed mb-10">
-              <span className="text-primary">RUNNING:</span> High-throughput BERT classification over environmental DNA sequences. Transforming raw FASTA dumps into structured ecological topologies.
+              <span className="text-primary">RUNNING:</span> Amplicon sequence variant inference via fastp + vsearch UNOISE3 against SILVA 138.1 and MIDORI2 reference databases. Real taxonomy. Real conservation status. Signed provenance.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -105,11 +105,11 @@ export const HeroSection = () => {
           {/* Readout Footer */}
           <div className="bg-black/80 p-4 font-mono text-xs flex flex-col sm:flex-row justify-between text-gray-500 border-t border-white/10">
             <div className="flex space-x-8">
-              <span><span className="text-primary">LATENCY:</span> 120ms</span>
-              <span><span className="text-primary">THROUGHPUT:</span> 4.2k seq/s</span>
+              <span><span className="text-primary">PIPELINE:</span> fastp + vsearch + scikit-bio</span>
+              <span><span className="text-primary">REF_DB:</span> SILVA 138.1 + MIDORI2 GB269</span>
             </div>
             <div className="mt-2 sm:mt-0">
-              [ TARGET: AQUIRED ]
+              [ OPEN SOURCE // MIT ]
             </div>
           </div>
         </div>

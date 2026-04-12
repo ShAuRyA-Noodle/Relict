@@ -17,7 +17,7 @@ export const Footer = () => {
   const currentYear = new Date().getFullYear();
   const containerRef = useRef<HTMLDivElement>(null);
   const [logMessages, setLogMessages] = useState<string[]>([]);
-  
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end end"]
@@ -36,10 +36,10 @@ export const Footer = () => {
       "MEM: 24.5 GB / 128 GB [ OK ]",
     ];
     let idx = 0;
-    
+
     const interval = setInterval(() => {
       setLogMessages(prev => {
-        const newLogs = [...prev, `[${new Date().toISOString().split('T')[1].substring(0,8)}] ` + logs[idx % logs.length]];
+        const newLogs = [...prev, `[${new Date().toISOString().split('T')[1].substring(0, 8)}] ` + logs[idx % logs.length]];
         if (newLogs.length > 5) newLogs.shift();
         return newLogs;
       });
@@ -66,19 +66,19 @@ export const Footer = () => {
   };
 
   return (
-    <footer 
+    <footer
       ref={containerRef}
       className="relative bg-transparent text-white overflow-hidden py-0 border-t-2 border-white/10 font-mono"
       style={{ minHeight: "80vh" }}
     >
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
-      
-      <motion.div 
+
+      <motion.div
         className="w-full h-full flex flex-col justify-between pt-16 sm:pt-24 pb-8 px-4 md:px-8 relative z-10"
         style={{ y, opacity }}
       >
         <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-12 sm:gap-24 mb-16">
-          
+
           {/* Left: Terminal Logging View */}
           <div className="border border-white/20 bg-black/60 p-4 w-full h-48 overflow-hidden relative shadow-[0_0_20px_rgba(0,0,0,1)]">
             <div className="flex items-center text-xs text-primary mb-4 pb-2 border-b border-white/10">
@@ -103,7 +103,7 @@ export const Footer = () => {
                 <ul className="space-y-4">
                   {links.map((link) => (
                     <li key={link.name}>
-                      <a 
+                      <a
                         href={link.href}
                         target={link.external ? "_blank" : "_self"}
                         className="text-gray-500 hover:text-white hover:bg-white/10 transition-colors flex items-center group py-1 px-2 -ml-2"
@@ -136,7 +136,7 @@ export const Footer = () => {
               <div>LICENSE: MIT OPEN-SOURCE</div>
             </div>
           </div>
-          
+
           <div className="w-full relative py-8 flex justify-center text-neon-cyan/80">
             <pre className="font-mono text-[6px] sm:text-[10px] md:text-sm lg:text-md leading-tight text-center drop-shadow-[0_0_15px_rgba(0,240,255,0.4)] block">
               {ASCII_LOGO}
