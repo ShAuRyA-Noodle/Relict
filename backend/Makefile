@@ -135,6 +135,24 @@ test-integration: ## Run only integration tests (needs Postgres/Redis/MinIO up).
 .PHONY: ci
 ci: lint typecheck test ## Run the full CI quality gate.
 
+# ─── Reference databases & demo data ──────────────────────────────
+
+.PHONY: download-refs
+download-refs: ## Download + SHA-verify all reference databases (SILVA, MitoFish, MIDORI2).
+	python scripts/download_references.py
+
+.PHONY: download-refs-silva
+download-refs-silva: ## Download SILVA 138.1 only.
+	python scripts/download_references.py --only silva
+
+.PHONY: download-refs-mitofish
+download-refs-mitofish: ## Download MitoFish only.
+	python scripts/download_references.py --only mitofish
+
+.PHONY: list-refs
+list-refs: ## Show available reference databases.
+	python scripts/download_references.py --list
+
 # ─── Cleanup ──────────────────────────────────────────────────────────
 
 .PHONY: clean

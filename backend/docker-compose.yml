@@ -161,6 +161,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - worker_workspaces:/workspaces
+      - ./data/references:/data/references:ro
     networks:
       - relict-net
 

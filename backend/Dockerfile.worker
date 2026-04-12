@@ -1,16 +1,54 @@
 # syntax=docker/dockerfile:1.7
 # ──────────────────────────────────────────────────────────────────────
-#  Relict — RQ worker image (Phase 1 = no-op pipeline stub)
+#  Relict — bioinformatics worker image
 #
-#  In Phase 2 this image grows to include fastp, vsearch, cutadapt, R +
-#  DADA2, and the bundled reference database tooling. For Phase 1 the
-#  worker simply pops jobs off Redis, sleeps briefly, and marks them
-#  succeeded — so the full request lifecycle can be exercised end-to-end
-#  before any real bioinformatics lands.
+#  This image contains every tool the pipeline actually calls:
+#    fastp 0.24.0     — QC & adapter trimming
+#    vsearch 2.28.1   — dereplication, UNOISE3 ASV inference, taxonomy
+#    cutadapt 4.9     — primer trimming
+#    scikit-bio 0.6.0 — diversity metrics
+#    umap-learn 0.5.6 — ordination
+#    hdbscan 0.8.40   — density-based clustering
+#    biopython 1.84   — FASTA/FASTQ I/O
+#    biom-format      — BIOM table output
+#
+#  The image is multi-stage to keep the final layer as small as
+#  possible while still shipping native C/C++ binaries (fastp, vsearch).
+#
+#  Version-pinning rule: every tool version is recorded in the
+#  provenance manifest (Phase 5). Changing any version here requires
+#  a corresponding bump in worker/__init__.py TOOL_VERSIONS.
 # ──────────────────────────────────────────────────────────────────────
 
 ARG PYTHON_VERSION=3.11.11
 
+# ─── Stage 1: tool binaries ─────────────────────────────────────────
+FROM python:${PYTHON_VERSION}-slim-bookworm AS tools
+
+ARG FASTP_VERSION=0.24.0
+ARG VSEARCH_VERSION=2.28.1
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      wget ca-certificates xz-utils \
+ && rm -rf /var/lib/apt/lists/*
+
+# fastp — single static binary
+RUN wget -qO /usr/local/bin/fastp \
+      "https://github.com/OpenGene/fastp/releases/download/v${FASTP_VERSION}/fastp" \
+ && chmod +x /usr/local/bin/fastp \
+ && fastp --version
+
+# vsearch — download the pre-built linux-x86_64 binary
+RUN wget -qO /tmp/vsearch.tar.gz \
+      "https://github.com/torognes/vsearch/releases/download/v${VSEARCH_VERSION}/vsearch-${VSEARCH_VERSION}-linux-x86_64.tar.gz" \
+ && tar xzf /tmp/vsearch.tar.gz -C /tmp \
+ && cp /tmp/vsearch-${VSEARCH_VERSION}-linux-x86_64/bin/vsearch /usr/local/bin/vsearch \
+ && chmod +x /usr/local/bin/vsearch \
+ && vsearch --version \
+ && rm -rf /tmp/vsearch*
+
+# ─── Stage 2: Python deps ───────────────────────────────────────────
 FROM python:${PYTHON_VERSION}-slim-bookworm AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -23,6 +61,8 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       build-essential \
       libpq-dev \
+      gfortran \
+      libopenblas-dev \
  && rm -rf /var/lib/apt/lists/*
 
 RUN python -m venv ${VENV_PATH}
@@ -31,34 +71,57 @@ ENV PATH="${VENV_PATH}/bin:${PATH}"
 WORKDIR /build
 COPY pyproject.toml ./
 RUN pip install --upgrade pip setuptools wheel \
- && pip install .
+ && pip install . \
+ && pip install \
+      biopython==1.84 \
+      scikit-bio==0.6.2 \
+      umap-learn==0.5.7 \
+      hdbscan==0.8.40 \
+      cutadapt==4.9 \
+      biom-format==2.1.16 \
+      numpy==1.26.4 \
+      pandas==2.2.3 \
+      scipy==1.14.1 \
+      matplotlib==3.9.3
 
-# ─── Runtime ─────────────────────────────────────────────────────────
+# ─── Stage 3: runtime ───────────────────────────────────────────────
 FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH="/opt/venv/bin:$PATH" \
+    PATH="/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     APP_HOME=/app
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       libpq5 \
+      libgomp1 \
+      libopenblas0 \
       tini \
+      curl \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --system --gid 10002 worker \
  && useradd  --system --uid 10002 --gid 10002 --home ${APP_HOME} --shell /usr/sbin/nologin worker
 
+# Copy tool binaries from stage 1
+COPY --from=tools /usr/local/bin/fastp /usr/local/bin/fastp
+COPY --from=tools /usr/local/bin/vsearch /usr/local/bin/vsearch
+
+# Copy Python venv from stage 2
 COPY --from=builder /opt/venv /opt/venv
 
 WORKDIR ${APP_HOME}
 COPY --chown=worker:worker . ${APP_HOME}/
 
-# Workspace for per-job scratch directories. Mounted as a volume in
-# docker-compose so scratch is durable across worker restarts.
+# Workspace for per-job scratch directories
 RUN mkdir -p /workspaces && chown worker:worker /workspaces
+# Reference database mount point
+RUN mkdir -p /data/references && chown worker:worker /data/references
 
 USER worker
+
+# Verify tools are available
+RUN fastp --version && vsearch --version && python -c "import Bio; import skbio; import umap; import hdbscan; print('All bioinformatics deps OK')"
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["python", "-m", "worker.main"]
