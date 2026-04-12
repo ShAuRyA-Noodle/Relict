@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BiodiversityBadge } from "@/components/BiodiversityBadge";
 import { ArrowRight, Play, Microscope } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
@@ -164,20 +163,7 @@ export const HeroSection = () => {
               </motion.div>
             </motion.div>
 
-            {/* Floating badge */}
-            <motion.div
-              className="absolute -top-8 -right-8 z-20"
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.5, duration: 0.6, ease: "backOut" }}
-            >
-              <BiodiversityBadge
-                score={94}
-                size="md"
-                animated={true}
-                showTrend={true}
-              />
-            </motion.div>
+            {/* Badge removed — no fake scores */}
 
             {/* Decorations */}
             <motion.div

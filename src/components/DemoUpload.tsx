@@ -1,33 +1,105 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, AlertCircle, Download } from "lucide-react";
+import { Upload, FileText, AlertCircle, LogIn, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-
-interface ApiResult {
-  n_reads: number;
-  k: number;
-  summary: {
-    clusters: Record<string, number>;
-    n_clusters_excl_noise: number;
-    noise_reads: number;
-    shannon_index?: number;
-    n_reads: number;
-  };
-  embedding_preview: Array<{ x: number; y: number; label: number }>;
-}
+import { useAuth } from "@/hooks/use-auth";
+import {
+  uploadSample,
+  getJob,
+  createJobWebSocket,
+  type JobPublic,
+} from "@/lib/api";
 
 export const DemoUpload = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [result, setResult] = useState<ApiResult | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [jobStatus, setJobStatus] = useState<string>("");
+  const [stageMessage, setStageMessage] = useState<string>("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const [authMode, setAuthMode] = useState<"login" | "signup">("signup");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, login, signup: signupFn, logout } = useAuth();
+
+  const handleAuth = async () => {
+    if (!email || !password) return;
+    setAuthLoading(true);
+    try {
+      if (authMode === "signup") {
+        await signupFn(email, password);
+      } else {
+        await login(email, password);
+      }
+      toast({ title: authMode === "signup" ? "Account created" : "Logged in" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Auth failed";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!jobId) return;
+    const ws = createJobWebSocket(jobId);
+    if (!ws) return;
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.progress !== undefined) {
+          setUploadProgress(Math.round(data.progress * 100));
+        }
+        if (data.message) {
+          setStageMessage(data.message);
+        }
+        if (data.kind === "job.succeeded") {
+          setJobStatus("succeeded");
+          setIsProcessing(false);
+          toast({ title: "Analysis complete", description: "View your results" });
+        }
+        if (data.kind === "job.failed") {
+          setJobStatus("failed");
+          setIsProcessing(false);
+          setError(data.message || "Pipeline failed");
+        }
+      } catch {}
+    };
+
+    ws.onerror = () => {
+      const pollInterval = setInterval(async () => {
+        try {
+          const job = await getJob(jobId);
+          if (job.status === "succeeded" || job.status === "failed") {
+            setJobStatus(job.status);
+            setIsProcessing(false);
+            if (job.status === "succeeded") {
+              toast({ title: "Analysis complete" });
+            } else {
+              setError(job.error_message || "Pipeline failed");
+            }
+            clearInterval(pollInterval);
+          }
+        } catch {}
+      }, 3000);
+      return () => clearInterval(pollInterval);
+    };
+
+    return () => { ws.close(); };
+  }, [jobId, toast]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -36,243 +108,153 @@ export const DemoUpload = () => {
 
       setUploadedFile(file);
       setIsProcessing(true);
-      setUploadProgress(30);
-      setResult(null);
+      setUploadProgress(5);
+      setError(null);
+      setJobId(null);
+      setJobStatus("");
+      setStageMessage("Uploading...");
 
       try {
-        const form = new FormData();
-        form.append("file", file);
-        form.append("k", "6");
-        form.append("max_reads", "10000");
-        form.append("min_len", "20");
-
-        const res = await fetch("http://127.0.0.1:8000/analyze", {
-          method: "POST",
-          body: form,
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json: ApiResult = await res.json();
-        if ((json as any).error) throw new Error((json as any).error);
-
-        setResult(json);
-        setUploadProgress(100);
+        const result = await uploadSample(file);
+        const jid = result.sample.job_id;
+        setJobId(jid);
+        setUploadProgress(10);
+        setStageMessage("Upload complete — pipeline starting...");
 
         toast({
-          title: "Analysis Complete",
-          description: `Reads: ${json.summary.n_reads}, Clusters: ${json.summary.n_clusters_excl_noise}, Shannon: ${
-            json.summary.shannon_index !== undefined
-              ? Math.abs(json.summary.shannon_index).toFixed(2)
-              : "—"
-          }`,
+          title: "Upload successful",
+          description: `${file.name} (${(file.size / 1024).toFixed(1)} KB) — processing started`,
         });
-      } catch (error: any) {
-        toast({
-          title: "Analysis Failed",
-          description:
-            error?.message ??
-            "Please try again with a valid eDNA sample file.",
-          variant: "destructive",
-        });
-      } finally {
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Upload failed";
+        setError(msg);
         setIsProcessing(false);
+        toast({ title: "Upload failed", description: msg, variant: "destructive" });
       }
     },
     [toast]
   );
 
-  const { getRootProps, getInputProps, isDragActive, fileRejections } =
-    useDropzone({
-      onDrop,
-      accept: { "text/plain": [".fasta", ".fa", ".fastq", ".fq"] },
-      maxSize: 20 * 1024 * 1024,
-      multiple: false,
-    });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "application/octet-stream": [".fastq", ".fq", ".fasta", ".fa", ".fna", ".fastq.gz", ".fq.gz"],
+    },
+    maxFiles: 1,
+    disabled: isProcessing || !isAuthenticated,
+  });
 
-  const downloadResults = (format: "json" | "csv") => {
-    if (!result) return;
-
-    let content = "";
-    let filename = "";
-
-    if (format === "json") {
-      content = JSON.stringify(result, null, 2);
-      filename = `edna_analysis_${Date.now()}.json`;
-    } else {
-      const csvRows = [
-        "Cluster,Count",
-        ...Object.entries(result.summary.clusters).map(
-          ([label, count]) => `${label},${count}`
-        ),
-      ];
-      content = csvRows.join("\n");
-      filename = `edna_analysis_${Date.now()}.csv`;
-    }
-
-    const blob = new Blob([content], {
-      type: format === "json" ? "application/json" : "text/csv",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  if (!isAuthenticated) {
+    return (
+      <Card className="p-8 glass max-w-lg mx-auto">
+        <h2 className="text-2xl font-display font-bold mb-4 text-center">
+          {authMode === "signup" ? "Create an account" : "Sign in"} to analyze
+        </h2>
+        <p className="text-muted-foreground text-center mb-6">
+          Real eDNA analysis requires an account so your results are saved and private.
+        </p>
+        <div className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border bg-background"
+          />
+          <input
+            type="password"
+            placeholder="Password (12+ characters)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border bg-background"
+          />
+          <Button onClick={handleAuth} disabled={authLoading} className="w-full" size="lg">
+            {authLoading ? "..." : authMode === "signup" ? (
+              <><UserPlus className="w-4 h-4 mr-2" /> Create Account</>
+            ) : (
+              <><LogIn className="w-4 h-4 mr-2" /> Sign In</>
+            )}
+          </Button>
+          <p className="text-sm text-center text-muted-foreground">
+            {authMode === "signup" ? "Already have an account?" : "Need an account?"}{" "}
+            <button
+              onClick={() => setAuthMode(authMode === "signup" ? "login" : "signup")}
+              className="text-emerald underline"
+            >
+              {authMode === "signup" ? "Sign in" : "Sign up"}
+            </button>
+          </p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Upload Section */}
-      <Card className="p-8 glass">
-        <div
-          {...getRootProps()}
-          className={cn(
-            "border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-all hover-lift",
-            isDragActive ? "border-emerald bg-emerald/5" : "border-border",
-            isProcessing && "cursor-not-allowed opacity-50"
-          )}
-        >
-          <input {...getInputProps()} disabled={isProcessing} />
-          <Upload className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Signed in as <strong>{user?.email}</strong>
+        </p>
+        <Button variant="ghost" size="sm" onClick={logout}>Sign out</Button>
+      </div>
 
-          <p className="text-lg font-medium mb-2">
-            Drop your eDNA sample file here, or click to browse
-          </p>
-          <p className="text-sm text-muted-foreground mb-4">
-            Supports FASTA/FASTQ files up to 20MB
-          </p>
-          <Button variant="outline" disabled={isProcessing}>
-            <FileText className="w-4 h-4 mr-2" />
-            Choose File
-          </Button>
-        </div>
-
-        {fileRejections.length > 0 && (
-          <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <div className="flex items-center space-x-2 text-destructive">
-              <AlertCircle className="w-4 h-4" />
-              <span className="text-sm font-medium">File rejected</span>
-            </div>
-          </div>
+      <Card
+        {...getRootProps()}
+        className={cn(
+          "p-12 border-2 border-dashed cursor-pointer transition-all duration-300 text-center",
+          isDragActive ? "border-emerald bg-emerald/5" : "border-muted hover:border-emerald/50",
+          isProcessing && "pointer-events-none opacity-60"
         )}
-
-        {uploadedFile && (
-          <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">{uploadedFile.name}</span>
-              <span className="text-sm text-muted-foreground">
-                {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-              </span>
-            </div>
-            {isProcessing && (
-              <div>
-                <Progress value={uploadProgress} className="mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  Analyzing DNA sequences…
-                </p>
-              </div>
-            )}
-          </div>
+      >
+        <input {...getInputProps()} />
+        <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+        {isDragActive ? (
+          <p className="text-lg font-medium text-emerald">Drop your FASTQ file here</p>
+        ) : (
+          <>
+            <p className="text-lg font-medium mb-2">
+              Drag & drop a FASTQ / FASTA file, or click to browse
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Supported: .fastq, .fq, .fasta, .fa, .fastq.gz
+            </p>
+          </>
         )}
       </Card>
 
-      {/* Results Section */}
-      {result && (
-        <Card className="p-8 glass">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-display font-bold">Analysis Results</h3>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => downloadResults("json")}
-              >
-                <Download className="w-4 h-4 mr-2" /> JSON
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => downloadResults("csv")}
-              >
-                <Download className="w-4 h-4 mr-2" /> CSV
-              </Button>
+      {(isProcessing || jobStatus) && (
+        <Card className="p-6 space-y-4">
+          {uploadedFile && (
+            <div className="flex items-center space-x-3">
+              <FileText className="w-5 h-5 text-emerald" />
+              <span className="font-medium">{uploadedFile.name}</span>
+              <Badge variant="secondary">{(uploadedFile.size / 1024).toFixed(1)} KB</Badge>
+              {jobStatus === "succeeded" && <Badge className="bg-emerald text-white">Complete</Badge>}
+              {jobStatus === "failed" && <Badge variant="destructive">Failed</Badge>}
+              {isProcessing && <Badge variant="outline">Processing...</Badge>}
             </div>
-          </div>
+          )}
 
-          <Tabs defaultValue="summary" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="summary">Summary</TabsTrigger>
-              <TabsTrigger value="clusters">Clusters</TabsTrigger>
-              <TabsTrigger value="download">Export</TabsTrigger>
-            </TabsList>
+          <Progress value={uploadProgress} className="h-2" />
 
-            <TabsContent value="summary" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-6 bg-emerald/10 rounded-lg">
-                  <div className="text-3xl font-bold text-emerald mb-2">
-                    {result.summary.n_reads}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Reads</div>
-                </div>
-                <div className="text-center p-6 bg-accent/10 rounded-lg">
-                  <div className="text-3xl font-bold text-accent mb-2">
-                    {result.summary.n_clusters_excl_noise}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Clusters</div>
-                </div>
-                <div className="text-center p-6 bg-muted/50 rounded-lg">
-                  <div className="text-3xl font-bold mb-2">
-                    {result.summary.shannon_index !== undefined
-                      ? Math.abs(result.summary.shannon_index).toFixed(3)
-                      : "—"}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Shannon Index
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
+          {stageMessage && (
+            <p className="text-sm text-muted-foreground">{stageMessage}</p>
+          )}
 
-            <TabsContent value="clusters" className="space-y-4">
-              <div className="space-y-2">
-                {Object.entries(result.summary.clusters).map(
-                  ([label, count]) => (
-                    <div
-                      key={label}
-                      className="flex items-center justify-between p-4 bg-muted/30 rounded-lg"
-                    >
-                      <div className="font-medium">Cluster {label}</div>
-                      <div className="font-medium">{count} reads</div>
-                    </div>
-                  )
-                )}
-              </div>
-            </TabsContent>
+          {error && (
+            <div className="flex items-center space-x-2 text-destructive">
+              <AlertCircle className="w-4 h-4" />
+              <span className="text-sm">{error}</span>
+            </div>
+          )}
 
-            <TabsContent value="download" className="text-center">
-              <p className="text-muted-foreground mb-4">
-                Download your analysis results
-              </p>
-              <div className="flex justify-center space-x-4">
-                <Button onClick={() => downloadResults("json")}>
-                  Download JSON
-                </Button>
-                <Button variant="outline" onClick={() => downloadResults("csv")}>
-                  Download CSV
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
+          {jobStatus === "succeeded" && jobId && (
+            <Button onClick={() => navigate(`/jobs/${jobId}`)} className="w-full" size="lg">
+              View Results
+            </Button>
+          )}
         </Card>
       )}
-
-      <div className="text-center text-sm text-muted-foreground">
-        <p>
-          <strong>Research Demo Notice:</strong> This is a demonstration system.
-          Not for clinical or production use.
-        </p>
-      </div>
     </div>
   );
 };
