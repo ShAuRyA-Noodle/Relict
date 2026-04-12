@@ -14,7 +14,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentUser, SessionDep
-from app.db.models import ASV, DiversityMetric, Job, JobStatus, Sample
+from app.db.models import ASV, ConservationCache, DiversityMetric, Job, JobStatus, Sample, Taxon
+from app.schemas.conservation import ConservationPublic, ConservationSummary
 from app.schemas.results import (
     ASVWithTaxon,
     DiversityPublic,
@@ -170,4 +171,61 @@ async def job_ordination(
         n_noise_points=0,
         skipped=True,
         reason="Ordination data is computed during the pipeline run. Persistent storage lands in Phase 5.",
+    )
+
+
+@router.get(
+    "/conservation",
+    response_model=ConservationSummary,
+    summary="Conservation status cross-reference (GBIF + IUCN Red List)",
+)
+async def job_conservation(
+    job_id: uuid.UUID,
+    user: CurrentUser,
+    session: SessionDep,
+) -> ConservationSummary:
+    """Return per-species conservation data from GBIF + IUCN Red List.
+
+    This is the novel contribution of Relict — no existing open eDNA
+    tool automates this cross-referencing step. Each detected species
+    is looked up against the GBIF backbone taxonomy for occurrence
+    counts and the IUCN Red List for conservation status.
+    """
+    job = await _get_succeeded_job(session, job_id, user)
+
+    # Get all species names from the job's ASVs via their taxon assignments
+    stmt = (
+        select(ASV)
+        .where(ASV.job_id == job.id)
+        .options(selectinload(ASV.taxon))
+    )
+    asvs = list(await session.scalars(stmt))
+
+    species_names: set[str] = set()
+    for asv in asvs:
+        if asv.taxon:
+            genus = asv.taxon.genus or ""
+            species = asv.taxon.species or ""
+            if genus:
+                full = f"{genus} {species}".strip() if species else genus
+                species_names.add(full)
+
+    # Look up cached conservation records
+    records: list[ConservationPublic] = []
+    if species_names:
+        stmt_cons = select(ConservationCache).where(
+            ConservationCache.species.in_(species_names)
+        )
+        cached = list(await session.scalars(stmt_cons))
+        records = [ConservationPublic.model_validate(c) for c in cached]
+
+    return ConservationSummary(
+        job_id=job.id,
+        species_queried=len(species_names),
+        species_with_gbif=sum(1 for r in records if r.gbif_key),
+        species_with_iucn=sum(1 for r in records if r.iucn_category),
+        threatened_count=sum(
+            1 for r in records if r.iucn_category in ("VU", "EN", "CR", "EW", "EX")
+        ),
+        records=records,
     )

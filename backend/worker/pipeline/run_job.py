@@ -33,10 +33,11 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
-from app.db.models import ASV, DiversityMetric, Job, JobStatus, Sample, Taxon
+from app.db.models import ASV, ConservationCache, DiversityMetric, Job, JobStatus, Sample, Taxon
 from app.services.queue import publish_job_event_sync
 from worker import PIPELINE_VERSION, TOOL_VERSIONS
 from worker.pipeline import StageError
+from worker.pipeline import conservation as conservation_stage
 from worker.pipeline import denoise_vsearch as denoise_stage
 from worker.pipeline import dereplicate as derep_stage
 from worker.pipeline import diversity as diversity_stage
@@ -192,8 +193,26 @@ def run_job(job_id: str) -> dict[str, str]:
                 _emit(uid, "stage.skipped", "No reference database found — taxonomy skipped. Run 'make download-refs'.", stage="taxonomy", progress=0.70)
                 tax_result = None
 
+            # ─── Stage 4b: Conservation cross-referencing ─────────────
+            conservation_result = None
+            if tax_result:
+                taxonomy_tsv = None
+                for f in tax_result.output_files:
+                    if f.endswith("taxonomy.tsv"):
+                        taxonomy_tsv = Path(f)
+                        break
+                if taxonomy_tsv and taxonomy_tsv.exists():
+                    _emit(uid, "stage.started", "Cross-referencing species against GBIF + IUCN Red List", stage="conservation", progress=0.72)
+                    conservation_result = conservation_stage.run(workspace, taxonomy_tsv, logger=log)
+                    stage_results.append(conservation_result.to_dict())
+                    threatened = conservation_result.metrics.get("threatened_count", 0)
+                    msg = f"Conservation done — {conservation_result.metrics.get('species_with_iucn', 0)} species checked"
+                    if threatened > 0:
+                        msg += f", {threatened} threatened"
+                    _emit(uid, "stage.completed", msg, stage="conservation", progress=0.78)
+
             # ─── Stage 5: Diversity metrics ───────────────────────────
-            _emit(uid, "stage.started", "Computing diversity metrics", stage="diversity", progress=0.75)
+            _emit(uid, "stage.started", "Computing diversity metrics", stage="diversity", progress=0.80)
             div_result = diversity_stage.run(workspace, asvs_fasta, logger=log)
             stage_results.append(div_result.to_dict())
             _emit(uid, "stage.completed", f"Diversity done — Shannon={div_result.metrics.get('shannon', '?')}", stage="diversity", progress=0.85)
@@ -210,6 +229,7 @@ def run_job(job_id: str) -> dict[str, str]:
                 asvs_fasta=asvs_fasta,
                 tax_result=tax_result,
                 div_result=div_result,
+                conservation_result=conservation_result,
             )
 
             # ─── Compute parameter hash ───────────────────────────────
@@ -257,8 +277,9 @@ def _persist_results(
     asvs_fasta: Path,
     tax_result: Any,
     div_result: Any,
+    conservation_result: Any = None,
 ) -> None:
-    """Write ASVs, taxa, and diversity metrics to the database."""
+    """Write ASVs, taxa, diversity metrics, and conservation data to the database."""
     asv_sequences = _read_fasta_with_sizes(asvs_fasta)
     tax_records = _load_taxonomy(tax_result) if tax_result else {}
 
@@ -301,6 +322,36 @@ def _persist_results(
             evenness=m.get("evenness"),
         )
         session.add(dm)
+
+    if conservation_result and not conservation_result.metrics.get("skipped"):
+        conservation_json = _load_conservation_json(conservation_result)
+        for rec in conservation_json:
+            species_name = rec.get("species", "")
+            if not species_name:
+                continue
+            existing = session.query(ConservationCache).filter(
+                ConservationCache.species == species_name
+            ).first()
+            if existing:
+                existing.gbif_key = rec.get("gbif_key")
+                existing.gbif_occurrence_count = rec.get("gbif_occurrence_count")
+                existing.iucn_category = rec.get("iucn_category")
+                existing.iucn_assessment_year = rec.get("iucn_assessment_year")
+                existing.is_invasive = rec.get("is_invasive", False)
+                existing.fetched_at = datetime.now(tz=UTC)
+            else:
+                session.add(ConservationCache(
+                    species=species_name,
+                    gbif_key=rec.get("gbif_key"),
+                    gbif_occurrence_count=rec.get("gbif_occurrence_count"),
+                    iucn_category=rec.get("iucn_category"),
+                    iucn_assessment_year=rec.get("iucn_assessment_year"),
+                    is_invasive=rec.get("is_invasive", False),
+                    legal_flags={"gbif_matched_name": rec.get("gbif_matched_name"),
+                                 "iucn_category_full": rec.get("iucn_category_full"),
+                                 "iucn_population_trend": rec.get("iucn_population_trend")},
+                    fetched_at=datetime.now(tz=UTC),
+                ))
 
     session.flush()
 
@@ -366,6 +417,17 @@ def _load_taxonomy(tax_result: Any) -> dict[str, dict[str, Any]]:
                     "identity": float(row["identity"]) / 100 if row.get("identity") else None,
                 }
     return records
+
+
+def _load_conservation_json(conservation_result: Any) -> list[dict[str, Any]]:
+    """Load conservation records from the stage output JSON."""
+    for f in conservation_result.output_files:
+        if f.endswith("conservation.json"):
+            p = Path(f)
+            if p.exists():
+                data = json.loads(p.read_text())
+                return data.get("records", [])
+    return []
 
 
 def _fail_job(session: Session, job: Job, error: str) -> None:
