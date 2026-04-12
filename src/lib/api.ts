@@ -5,8 +5,10 @@
  * No mock data, no fake numbers, no placeholder responses.
  */
 
-const API_BASE = "http://localhost:8000";
-const API_V1 = `${API_BASE}/api/v1`;
+// Use relative URLs so the Vite proxy forwards to the backend.
+// This makes the app work through ngrok (single tunnel on port 8080).
+const API_BASE = "";
+const API_V1 = `/api/v1`;
 
 // ─── Token management ─────────────────────────────────────────────
 
@@ -295,5 +297,8 @@ export async function checkHealth(): Promise<{ status: string; version: string }
 export function createJobWebSocket(jobId: string): WebSocket | null {
   const token = getAccessToken();
   if (!token) return null;
-  return new WebSocket(`ws://localhost:8000/ws/jobs/${jobId}?token=${token}`);
+  // Use relative WebSocket URL so it works through ngrok/proxy
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const host = window.location.host;
+  return new WebSocket(`${protocol}//${host}/ws/jobs/${jobId}?token=${token}`);
 }
