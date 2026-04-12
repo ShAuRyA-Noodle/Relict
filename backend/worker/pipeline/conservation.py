@@ -25,8 +25,7 @@ from __future__ import annotations
 
 import json
 import time
-from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -34,8 +33,7 @@ import httpx
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
-from worker import TOOL_VERSIONS
-from worker.pipeline import StageError, StageResult, StageTimer, ensure_stage_dir
+from worker.pipeline import StageResult, StageTimer, ensure_stage_dir
 
 log = get_logger(__name__)
 
@@ -268,24 +266,29 @@ def _gbif_lookup(record: ConservationRecord, species_name: str) -> None:
 def _iucn_lookup(
     record: ConservationRecord, species_name: str, token: str
 ) -> None:
-    """Query IUCN Red List API v3 for conservation status."""
+    """Query IUCN Red List status via GBIF's mirrored endpoint.
+
+    GBIF mirrors IUCN Red List categories at
+    ``/v1/species/{key}/iucnRedListCategory``, which is more reliable
+    than IUCN's own API (which is behind Cloudflare bot protection).
+    We use this endpoint when we already have a GBIF taxon key from
+    the earlier ``_gbif_lookup`` call.
+    """
+    if not record.gbif_key:
+        return
+
     with httpx.Client(timeout=15.0) as client:
-        url = f"{IUCN_SPECIES_URL}/{species_name}"
-        resp = client.get(url, params={"token": token})
+        url = f"https://api.gbif.org/v1/species/{record.gbif_key}/iucnRedListCategory"
+        resp = client.get(url)
+
+        if resp.status_code == 404:
+            return
         resp.raise_for_status()
         data = resp.json()
 
-        results = data.get("result")
-        if results and len(results) > 0:
-            assessment = results[0]
-            category = assessment.get("category", "")
-            record.iucn_category = category
-            record.iucn_category_full = IUCN_CATEGORY_MAP.get(category, category)
-            record.iucn_population_trend = assessment.get("population_trend")
+        code = data.get("code", "")
+        category_full = data.get("category", "")
 
-            year_str = assessment.get("assessment_date") or assessment.get("published_year") or ""
-            if year_str:
-                try:
-                    record.iucn_assessment_year = int(str(year_str)[:4])
-                except (ValueError, IndexError):
-                    pass
+        if code:
+            record.iucn_category = code
+            record.iucn_category_full = IUCN_CATEGORY_MAP.get(code, category_full)
