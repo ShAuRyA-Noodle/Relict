@@ -1,5 +1,5 @@
 /**
- * Relict API client — typed fetch wrappers for every backend endpoint.
+ * Relict API client - typed fetch wrappers for every backend endpoint.
  *
  * Every function here talks to the real FastAPI backend at API_BASE.
  * No mock data, no fake numbers, no placeholder responses.

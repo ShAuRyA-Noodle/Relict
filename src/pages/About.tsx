@@ -35,16 +35,16 @@ const About = () => {
               </div>
               <div className="text-xs text-gray-400 leading-relaxed space-y-4 font-light">
                 <p>Relict is a fully independent, end-to-end research platform designed, engineered, and deployed by a single developer.</p>
-                <p>Every layer of the system — research design, machine learning integration, database engineering, visualization, and deployment — has been independently built to meet real-world scientific needs.</p>
+                <p>Every layer of the system - research design, machine learning integration, database engineering, visualization, and deployment - has been independently built to meet real-world scientific needs.</p>
               </div>
               <div className="mt-8 pt-4 border-t border-secondary/30 flex items-center space-x-4">
-                <a href="#" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
+                <a href="https://github.com/ShAuRyA-Noodle" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
                   <Github className="w-4 h-4" />
                 </a>
-                <a href="#" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
+                <a href="https://www.linkedin.com/in/shaurya-punj-2287513b3/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
                   <Linkedin className="w-4 h-4" />
                 </a>
-                <a href="mailto:spunj_be23@thapar.edu" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
+                <a href="mailto:workwithshaurya10@gmail.com" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
                   <Mail className="w-4 h-4" />
                 </a>
               </div>
@@ -100,7 +100,7 @@ const About = () => {
             <p className="text-gray-400 text-sm max-w-2xl mx-auto mb-6">
               RELICT_SYS is fully open-source (MIT Licensed) and available for academic collaboration. External researchers seeking pipeline access or applied benchmarking protocols may initiate contact sequence.
             </p>
-            <a href="mailto:spunj_be23@thapar.edu" className="inline-flex items-center px-6 py-3 border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black font-bold text-sm tracking-widest transition-all">
+            <a href="mailto:workwithshaurya10@gmail.com" className="inline-flex items-center px-6 py-3 border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black font-bold text-sm tracking-widest transition-all">
               <Mail className="w-4 h-4 mr-2" />
               INITIATE_HANDSHAKE
             </a>

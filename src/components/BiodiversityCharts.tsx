@@ -10,7 +10,7 @@ export const BiodiversityCharts = () => {
       <h2 className="text-2xl font-display font-bold">Real-Time Visualizations</h2>
       <p className="text-muted-foreground max-w-lg mx-auto">
         Upload a FASTQ file on the Demo page to see real taxonomy charts,
-        diversity metrics, conservation status, and ordination plots —
+        diversity metrics, conservation status, and ordination plots -
         all computed from your actual data by real bioinformatics tools.
       </p>
       <p className="text-sm text-muted-foreground">

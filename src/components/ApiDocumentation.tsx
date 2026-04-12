@@ -305,7 +305,7 @@ export const ApiDocumentation = () => {
         </p>
         <div className="text-sm opacity-75">
           <p><strong>Issues / Contributions:</strong> open a GitHub issue on the repository</p>
-          <p>Self-hosted — API base URL is your own deployment</p>
+          <p>Self-hosted - API base URL is your own deployment</p>
         </div>
       </Card>
     </div>

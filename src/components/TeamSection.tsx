@@ -21,13 +21,13 @@ const architect = {
   Relict is a fully independent, end-to-end research platform designed,
   engineered, and deployed by a single developer.
 
-  Shaurya architected the complete system — from frontend experience and backend
+  Shaurya architected the complete system - from frontend experience and backend
   services to AI/ML pipelines, data engineering, and bioinformatics workflows.
   The platform integrates environmental genomics with modern machine learning to
   deliver scalable, production-ready biodiversity insights.
 
-  Every layer of the system — research design, technical architecture, model
-  integration, database engineering, visualization, and deployment — has been
+  Every layer of the system - research design, technical architecture, model
+  integration, database engineering, visualization, and deployment - has been
   independently built, validated, and optimized to meet real-world scientific
   and conservation needs.
   `,
@@ -63,25 +63,25 @@ const acknowledgments = [
 
 const references = [
   {
-    title: "DNABERT-S: Pioneering Species Differentiation with Species-Aware DNA Embeddings",
-    authors: "Zhou Z. et al.",
-    journal: "arXiv preprint",
-    year: "2024",
-    doi: "arXiv"
+    title: "VSEARCH: a versatile open source tool for metagenomics",
+    authors: "Rognes T. et al.",
+    journal: "PeerJ",
+    year: "2016",
+    doi: "https://doi.org/10.7717/peerj.2584"
   },
   {
-    title: "AI-Assisted Environmental DNA Metabarcoding for Marine Monitoring",
-    authors: "Yang J. et al.",
-    journal: "Journal of Marine Science and Engineering",
-    year: "2024",
-    doi: "MDPI"
+    title: "DADA2: High-resolution sample inference from Illumina amplicon data",
+    authors: "Callahan B. J. et al.",
+    journal: "Nature Methods",
+    year: "2016",
+    doi: "https://doi.org/10.1038/nmeth.3869"
   },
   {
-    title: "Monitoring River Ecology with Diatom eDNA Metabarcoding",
-    authors: "Apothéloz-Perret-Gentil L. et al.",
-    journal: "Molecular Ecology",
-    year: "2021",
-    doi: "PMC"
+    title: "The SILVA ribosomal RNA gene database project",
+    authors: "Quast C. et al.",
+    journal: "Nucleic Acids Research",
+    year: "2013",
+    doi: "https://doi.org/10.1093/nar/gks1219"
   }
 ];
 
@@ -119,9 +119,15 @@ export const TeamSection = () => {
               </div>
 
               <div className="flex space-x-4">
-                <Github className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
-                <Linkedin className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
-                <Mail className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
+                <a href="https://github.com/ShAuRyA-Noodle" target="_blank" rel="noopener noreferrer">
+                  <Github className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
+                </a>
+                <a href="https://www.linkedin.com/in/shaurya-punj-2287513b3/" target="_blank" rel="noopener noreferrer">
+                  <Linkedin className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
+                </a>
+                <a href="mailto:workwithshaurya10@gmail.com">
+                  <Mail className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
+                </a>
               </div>
             </div>
           </div>
@@ -140,7 +146,7 @@ export const TeamSection = () => {
             engineering, and rigorous scientific workflows.
 
             The mission is to make biodiversity monitoring faster, more accurate,
-            and operationally practical — enabling researchers, policymakers,
+            and operationally practical - enabling researchers, policymakers,
             and conservation teams to move from raw genomic data to actionable
             ecological insight with confidence.
           </p>
@@ -192,10 +198,10 @@ export const TeamSection = () => {
                   {ref.journal}
                 </p>
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs text-muted-foreground">
-                    DOI: {ref.doi}
-                  </span>
-                  <ExternalLink className="w-3 h-3 text-muted-foreground hover:text-foreground cursor-pointer" />
+                  <a href={ref.doi} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground flex items-center space-x-1">
+                    <span>DOI</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
               </div>
             ))}
@@ -216,7 +222,7 @@ export const TeamSection = () => {
 
           <div className="flex justify-center items-center space-x-2 text-sm opacity-90">
             <Mail className="w-4 h-4" />
-            <span>spunj_be23@thapar.edu</span>
+            <span>workwithshaurya10@gmail.com</span>
           </div>
 
           <div className="mt-4 text-sm opacity-75">

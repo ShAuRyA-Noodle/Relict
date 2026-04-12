@@ -137,12 +137,12 @@ function OverviewTab({ summary }: { summary?: JobResultsSummary }) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <MetricCard label="ASVs Detected" value={summary.n_asvs} />
       <MetricCard label="Taxa Assigned" value={`${summary.n_assigned} / ${summary.n_asvs}`} />
-      <MetricCard label="Shannon Index" value={d?.shannon?.toFixed(4) ?? "—"} />
-      <MetricCard label="Simpson Index" value={d?.simpson?.toFixed(4) ?? "—"} />
-      <MetricCard label="Species Richness" value={d?.richness ?? "—"} />
-      <MetricCard label="Chao1 Estimate" value={d?.chao1?.toFixed(2) ?? "—"} />
-      <MetricCard label="Evenness" value={d?.evenness?.toFixed(4) ?? "—"} />
-      <MetricCard label="Pipeline" value={summary.pipeline_version ?? "—"} />
+      <MetricCard label="Shannon Index" value={d?.shannon?.toFixed(4) ?? "-"} />
+      <MetricCard label="Simpson Index" value={d?.simpson?.toFixed(4) ?? "-"} />
+      <MetricCard label="Species Richness" value={d?.richness ?? "-"} />
+      <MetricCard label="Chao1 Estimate" value={d?.chao1?.toFixed(2) ?? "-"} />
+      <MetricCard label="Evenness" value={d?.evenness?.toFixed(4) ?? "-"} />
+      <MetricCard label="Pipeline" value={summary.pipeline_version ?? "-"} />
     </div>
   );
 }
@@ -186,7 +186,7 @@ function ASVsTab({ asvs }: { asvs?: ASVWithTaxon[] }) {
                 <td className="py-2 pr-4 font-mono">{asv.abundance}</td>
                 <td className="py-2 pr-4">{asv.length} bp</td>
                 <td className="py-2 pr-4 max-w-xs truncate" title={lineage}>{lineage}</td>
-                <td className="py-2 pr-4">{t?.confidence ? `${(t.confidence * 100).toFixed(1)}%` : "—"}</td>
+                <td className="py-2 pr-4">{t?.confidence ? `${(t.confidence * 100).toFixed(1)}%` : "-"}</td>
                 <td className="py-2 font-mono text-xs text-muted-foreground">{asv.sequence.slice(0, 40)}...</td>
               </tr>
             );

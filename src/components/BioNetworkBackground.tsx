@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 const ParticleSwarm = () => {
-  const count = 1200; // Reduced from 3000 — keeps the aesthetic without obscuring text
+  const count = 1200; // Reduced from 3000 - keeps the aesthetic without obscuring text
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
   const dummy = useMemo(() => new THREE.Object3D(), []);

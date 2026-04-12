@@ -139,7 +139,7 @@ function JobRow({ job }: { job: JobPublic }) {
   const created = new Date(job.created_at);
   const runtime = job.started_at && job.finished_at
     ? ((new Date(job.finished_at).getTime() - new Date(job.started_at).getTime()) / 1000).toFixed(1) + "s"
-    : "—";
+    : "-";
 
   return (
     <Link

@@ -26,7 +26,7 @@ const sdgGoals = [
 const impactAreas = [
   {
     title: "Biodiversity Monitoring",
-    description: "Non-invasive species detection from water, soil or sediment samples — no organism capture required. Surfaces rare, cryptic, and nocturnal taxa that traditional surveys routinely miss.",
+    description: "Non-invasive species detection from water, soil or sediment samples - no organism capture required. Surfaces rare, cryptic, and nocturnal taxa that traditional surveys routinely miss.",
     icon: Target,
     metrics: "Non-invasive sampling",
     color: "emerald",
@@ -40,7 +40,7 @@ const impactAreas = [
   },
   {
     title: "Reproducible Research",
-    description: "Every analysis produces a signed provenance manifest — input hashes, tool versions, database versions, parameters, output hashes — so any result can be independently re-verified.",
+    description: "Every analysis produces a signed provenance manifest - input hashes, tool versions, database versions, parameters, output hashes - so any result can be independently re-verified.",
     icon: TrendingUp,
     metrics: "Signed provenance",
     color: "muted",
