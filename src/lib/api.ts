@@ -274,6 +274,10 @@ export function getBiomUrl(jobId: string): string {
   return `${API_V1}/jobs/${jobId}/export/biom`;
 }
 
+export function getReportUrl(jobId: string): string {
+  return `${API_V1}/jobs/${jobId}/export/report`;
+}
+
 export async function downloadExport(url: string, filename: string) {
   const res = await fetch(url, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Export failed: ${res.status}`);

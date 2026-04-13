@@ -16,8 +16,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentUser, SessionDep
-from app.db.models import ASV, Job, JobStatus, Sample
+from app.db.models import ASV, ConservationCache, DiversityMetric, Job, JobStatus, Provenance, Sample
 from app.services.dwca import generate_dwca
+from app.services.report import generate_html_report
 
 router = APIRouter(prefix="/jobs/{job_id}/export", tags=["exports"])
 
@@ -234,5 +235,120 @@ async def export_biom(
     return Response(
         content=biom_bytes,
         media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get(
+    "/report",
+    summary="Download a comprehensive HTML analysis report",
+    response_class=Response,
+)
+async def export_report(
+    job_id: uuid.UUID,
+    user: CurrentUser,
+    session: SessionDep,
+) -> Response:
+    """Generate a self-contained HTML report with all pipeline results.
+
+    The report includes input summary, diversity metrics, ASV table with
+    taxonomy, conservation cross-reference with IUCN badges, and the full
+    provenance manifest. It renders in any browser and prints cleanly.
+    """
+    job = await _get_succeeded_job(session, job_id, user)
+
+    stmt = (
+        select(ASV)
+        .where(ASV.job_id == job.id)
+        .options(selectinload(ASV.taxon))
+        .order_by(ASV.abundance.desc())
+    )
+    asvs_db = list(await session.scalars(stmt))
+
+    sample = await session.scalar(select(Sample).where(Sample.job_id == job.id))
+
+    div_row = None
+    if sample:
+        div_row = await session.scalar(
+            select(DiversityMetric).where(DiversityMetric.sample_id == sample.id)
+        )
+
+    prov_row = await session.scalar(
+        select(Provenance).where(Provenance.job_id == job.id)
+    )
+
+    species_names: set[str] = set()
+    asv_dicts = []
+    for asv in asvs_db:
+        d: dict = {
+            "sequence": asv.sequence,
+            "abundance": asv.abundance,
+            "length": asv.length,
+            "sequence_sha256": asv.sequence_sha256,
+        }
+        if asv.taxon:
+            d["taxon"] = {
+                "kingdom": asv.taxon.kingdom,
+                "phylum": asv.taxon.phylum,
+                "tax_class": asv.taxon.tax_class,
+                "tax_order": asv.taxon.tax_order,
+                "family": asv.taxon.family,
+                "genus": asv.taxon.genus,
+                "species": asv.taxon.species,
+                "confidence": asv.taxon.confidence,
+            }
+            g = asv.taxon.genus or ""
+            s = asv.taxon.species or ""
+            if g:
+                species_names.add(f"{g} {s}".strip() if s else g)
+        asv_dicts.append(d)
+
+    cons_data: dict = {"species_queried": 0, "species_with_gbif": 0, "species_with_iucn": 0, "threatened_count": 0, "records": []}
+    if species_names:
+        cached = list(await session.scalars(
+            select(ConservationCache).where(ConservationCache.species.in_(species_names))
+        ))
+        cons_data["species_queried"] = len(species_names)
+        cons_data["species_with_gbif"] = sum(1 for c in cached if c.gbif_key)
+        cons_data["species_with_iucn"] = sum(1 for c in cached if c.iucn_category)
+        cons_data["threatened_count"] = sum(1 for c in cached if c.iucn_category in ("VU", "EN", "CR", "EW", "EX"))
+        cons_data["records"] = [
+            {
+                "species": c.species,
+                "gbif_key": c.gbif_key,
+                "gbif_occurrence_count": c.gbif_occurrence_count,
+                "iucn_category": c.iucn_category,
+                "is_invasive": c.is_invasive,
+                "legal_flags": c.legal_flags,
+            }
+            for c in cached
+        ]
+
+    html = generate_html_report(
+        job_id=str(job.id),
+        pipeline_version=job.pipeline_version or "unknown",
+        parameter_hash=job.parameter_hash or "",
+        asvs=asv_dicts,
+        diversity={
+            "shannon": div_row.shannon if div_row else None,
+            "simpson": div_row.simpson if div_row else None,
+            "richness": div_row.richness if div_row else None,
+            "chao1": div_row.chao1 if div_row else None,
+            "evenness": div_row.evenness if div_row else None,
+        },
+        conservation=cons_data,
+        provenance={
+            "manifest": prov_row.manifest if prov_row else {},
+            "manifest_sha256": prov_row.manifest_sha256 if prov_row else "",
+        },
+        sample_filename=sample.filename if sample else "unknown",
+        sample_sha256=sample.sha256 if sample else "",
+        sample_size=sample.size_bytes if sample else 0,
+    )
+
+    filename = f"relict_report_{job.id}.html"
+    return Response(
+        content=html.encode("utf-8"),
+        media_type="text/html",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

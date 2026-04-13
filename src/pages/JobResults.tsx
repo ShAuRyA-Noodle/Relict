@@ -15,6 +15,7 @@ import {
   getDwcaUrl,
   getCsvUrl,
   getBiomUrl,
+  getReportUrl,
   getJob,
   type ASVWithTaxon,
   type ConservationSummary,
@@ -159,40 +160,39 @@ function MetricCard({ label, value }: { label: string; value: string | number })
 function ASVsTab({ asvs }: { asvs?: ASVWithTaxon[] }) {
   if (!asvs) return <p className="text-muted-foreground">Loading...</p>;
   return (
-    <Card className="p-6 overflow-x-auto">
+    <Card className="p-6">
       <h3 className="text-lg font-semibold mb-4">{asvs.length} Amplicon Sequence Variants</h3>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left">
-            <th className="py-2 pr-4">#</th>
-            <th className="py-2 pr-4">Abundance</th>
-            <th className="py-2 pr-4">Length</th>
-            <th className="py-2 pr-4">Taxonomy</th>
-            <th className="py-2 pr-4">Confidence</th>
-            <th className="py-2">Sequence (first 40bp)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {asvs.map((asv, i) => {
-            const t = asv.taxon;
-            const lineage = t
-              ? [t.kingdom, t.phylum, t.tax_class, t.tax_order, t.family, t.genus, t.species]
-                  .filter(Boolean)
-                  .join(" > ")
-              : "Unassigned";
-            return (
-              <tr key={asv.id} className="border-b hover:bg-muted/30">
-                <td className="py-2 pr-4 text-muted-foreground">{i + 1}</td>
-                <td className="py-2 pr-4 font-mono">{asv.abundance}</td>
-                <td className="py-2 pr-4">{asv.length} bp</td>
-                <td className="py-2 pr-4 max-w-xs truncate" title={lineage}>{lineage}</td>
-                <td className="py-2 pr-4">{t?.confidence ? `${(t.confidence * 100).toFixed(1)}%` : "-"}</td>
-                <td className="py-2 font-mono text-xs text-muted-foreground">{asv.sequence.slice(0, 40)}...</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="space-y-3">
+        {asvs.map((asv, i) => {
+          const t = asv.taxon;
+          const genus = t?.genus || "";
+          const species = t?.species || "";
+          const family = t?.family || "";
+          const phylum = t?.phylum || "";
+          const conf = t?.confidence ? `${(t.confidence * 100).toFixed(1)}%` : "-";
+          return (
+            <div key={asv.id} className="border border-white/10 rounded p-4 hover:bg-white/5 transition-colors">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground font-mono w-6">#{i + 1}</span>
+                  <span className="font-bold text-white">{genus} {species}</span>
+                  <span className="text-xs px-2 py-0.5 border border-white/20 text-muted-foreground">{conf} identity</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>{asv.abundance} reads</span>
+                  <span>{asv.length} bp</span>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground mb-1">
+                {[t?.kingdom, phylum, t?.tax_class, t?.tax_order, family, genus].filter(Boolean).join(" > ")}
+              </div>
+              <div className="font-mono text-[10px] text-muted-foreground/60 break-all">
+                {asv.sequence.slice(0, 60)}...
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </Card>
   );
 }
@@ -310,31 +310,50 @@ function ProvenanceTab({ data }: { data?: ProvenanceManifest }) {
 
 function ExportTab({ jobId }: { jobId: string }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <Card className="p-6 text-center space-y-3">
-        <Download className="w-8 h-8 mx-auto text-emerald" />
-        <h3 className="font-semibold">Darwin Core Archive</h3>
-        <p className="text-sm text-muted-foreground">GBIF-compatible ZIP for data submission</p>
-        <Button onClick={() => downloadExport(getDwcaUrl(jobId), `relict_dwca_${jobId}.zip`)} className="w-full">
-          Download DwC-A
+    <div className="space-y-6">
+      <Card className="p-6 border-2 border-emerald/30">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="p-3 bg-emerald/10 rounded-lg">
+            <FileCheck className="w-8 h-8 text-emerald" />
+          </div>
+          <div>
+            <h3 className="font-bold text-lg">Full Analysis Report</h3>
+            <p className="text-sm text-muted-foreground">
+              Complete HTML report with all results: diversity metrics, ASV table, taxonomy, conservation status (IUCN/GBIF), and full provenance manifest. Opens in any browser. Print-ready.
+            </p>
+          </div>
+        </div>
+        <Button onClick={() => downloadExport(getReportUrl(jobId), `relict_report_${jobId}.html`)} className="w-full" size="lg">
+          <Download className="w-4 h-4 mr-2" /> Download Full Report (HTML)
         </Button>
       </Card>
-      <Card className="p-6 text-center space-y-3">
-        <Download className="w-8 h-8 mx-auto text-accent" />
-        <h3 className="font-semibold">CSV Table</h3>
-        <p className="text-sm text-muted-foreground">ASVs + taxonomy in spreadsheet format</p>
-        <Button variant="outline" onClick={() => downloadExport(getCsvUrl(jobId), `relict_asvs_${jobId}.csv`)} className="w-full">
-          Download CSV
-        </Button>
-      </Card>
-      <Card className="p-6 text-center space-y-3">
-        <Download className="w-8 h-8 mx-auto text-muted-foreground" />
-        <h3 className="font-semibold">BIOM Format</h3>
-        <p className="text-sm text-muted-foreground">For QIIME2 and phyloseq import</p>
-        <Button variant="outline" onClick={() => downloadExport(getBiomUrl(jobId), `relict_biom_${jobId}.json`)} className="w-full">
-          Download BIOM
-        </Button>
-      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="p-6 text-center space-y-3">
+          <Download className="w-8 h-8 mx-auto text-emerald" />
+          <h3 className="font-semibold">Darwin Core Archive</h3>
+          <p className="text-sm text-muted-foreground">GBIF-compatible ZIP with occurrence.txt, dna-derived-data.txt, eml.xml. Submit directly to GBIF IPT.</p>
+          <Button variant="outline" onClick={() => downloadExport(getDwcaUrl(jobId), `relict_dwca_${jobId}.zip`)} className="w-full">
+            Download DwC-A
+          </Button>
+        </Card>
+        <Card className="p-6 text-center space-y-3">
+          <Download className="w-8 h-8 mx-auto text-accent" />
+          <h3 className="font-semibold">CSV Table</h3>
+          <p className="text-sm text-muted-foreground">Flat spreadsheet with ASV sequences, abundances, 7-rank taxonomy, identity scores, and reference DB.</p>
+          <Button variant="outline" onClick={() => downloadExport(getCsvUrl(jobId), `relict_asvs_${jobId}.csv`)} className="w-full">
+            Download CSV
+          </Button>
+        </Card>
+        <Card className="p-6 text-center space-y-3">
+          <Download className="w-8 h-8 mx-auto text-muted-foreground" />
+          <h3 className="font-semibold">BIOM 2.1.0</h3>
+          <p className="text-sm text-muted-foreground">Standard format for QIIME 2 import and phyloseq analysis in R. Includes taxonomy metadata.</p>
+          <Button variant="outline" onClick={() => downloadExport(getBiomUrl(jobId), `relict_biom_${jobId}.json`)} className="w-full">
+            Download BIOM
+          </Button>
+        </Card>
+      </div>
     </div>
   );
 }
