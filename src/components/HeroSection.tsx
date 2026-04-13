@@ -96,8 +96,8 @@ export const HeroSection = () => {
                 <ChevronRight className="w-4 h-4 mr-2" />
                 EXECUTE // PIPELINE
               </Link>
-              <a href="https://github.com/ShAuRyA-Noodle/Bad-Omens" target="_blank" rel="noopener noreferrer" className="border border-white/20 text-gray-400 hover:text-white hover:bg-white/10 px-8 py-4 flex items-center justify-center font-mono text-sm transition-colors uppercase">
-                VIEW_SOURCE
+              <a href="/relict_paper.pdf" target="_blank" rel="noopener noreferrer" className="border border-white/20 text-gray-400 hover:text-white hover:bg-white/10 px-8 py-4 flex items-center justify-center font-mono text-sm transition-colors uppercase">
+                VIEW_PAPER
               </a>
             </div>
           </div>

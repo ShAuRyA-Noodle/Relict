@@ -100,7 +100,7 @@ const About = () => {
             <p className="text-gray-400 text-sm max-w-2xl mx-auto mb-6">
               RELICT_SYS is fully open-source (MIT Licensed) and available for academic collaboration. External researchers seeking pipeline access or applied benchmarking protocols may initiate contact sequence.
             </p>
-            <a href="mailto:workwithshaurya10@gmail.com" className="inline-flex items-center px-6 py-3 border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black font-bold text-sm tracking-widest transition-all">
+            <a href="https://www.shauryapunj.com/contact" target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-6 py-3 border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black font-bold text-sm tracking-widest transition-all">
               <Mail className="w-4 h-4 mr-2" />
               INITIATE_HANDSHAKE
             </a>
