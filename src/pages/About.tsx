@@ -44,7 +44,7 @@ const About = () => {
                 <a href="https://www.linkedin.com/in/shaurya-punj-2287513b3/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
                   <Linkedin className="w-4 h-4" />
                 </a>
-                <a href="mailto:workwithshaurya10@gmail.com" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
+                <a href="https://www.shauryapunj.com/contact" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
                   <Mail className="w-4 h-4" />
                 </a>
               </div>
