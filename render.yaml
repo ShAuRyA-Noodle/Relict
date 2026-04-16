@@ -1,0 +1,178 @@
+# ───────────────────────────────────────────────────────────────────────
+#  Render Blueprint — eDNA Biodiversity Platform
+#
+#  One-click deploy: https://render.com/docs/blueprint-spec
+#
+#  Services created:
+#    - relict-api        (web, Docker)           → FastAPI + WebSockets
+#    - relict-worker     (worker, Docker)        → RQ pipeline executor
+#    - relict-redis      (Redis key-value store) → job queue + pub/sub
+#    - relict-postgres   (managed Postgres 16)   → metadata + results
+#
+#  NOT managed by this blueprint (configure separately):
+#    - Object storage: point MINIO_* env vars at AWS S3, Cloudflare R2,
+#      or Backblaze B2. Render has no built-in object storage, and the
+#      per-service ephemeral filesystem cannot satisfy "durable FASTQ
+#      upload" requirements.
+#    - Reference databases: attach a Render Disk to the worker at
+#      REFERENCES_ROOT (default /data/references) and run the downloader
+#      script once after first deploy:
+#        render ssh relict-worker
+#        bash scripts/download_references.sh
+#
+#  After deploying this blueprint:
+#    1. Set CORS_ORIGINS on relict-api to your Vercel frontend URL.
+#    2. Set MINIO_* on both services to your S3/R2/B2 credentials.
+#    3. Rotate and populate IUCN_REDLIST_TOKEN, GBIF_*, NCBI_* on both.
+# ───────────────────────────────────────────────────────────────────────
+
+databases:
+  - name: relict-postgres
+    plan: basic-256mb
+    databaseName: relict
+    user: relict
+    postgresMajorVersion: "16"
+
+services:
+  # ─── Redis (RQ queue + WebSocket pub/sub) ────────────────────────────
+  - type: keyvalue
+    name: relict-redis
+    plan: free
+    ipAllowList: []               # private network only — no public access
+
+  # ─── FastAPI (web) ───────────────────────────────────────────────────
+  - type: web
+    name: relict-api
+    runtime: docker
+    plan: starter
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+
+      # Postgres — fromDatabase pulls live credentials from the managed DB above
+      - key: POSTGRES_HOST
+        fromDatabase: { name: relict-postgres, property: host }
+      - key: POSTGRES_PORT
+        fromDatabase: { name: relict-postgres, property: port }
+      - key: POSTGRES_USER
+        fromDatabase: { name: relict-postgres, property: user }
+      - key: POSTGRES_PASSWORD
+        fromDatabase: { name: relict-postgres, property: password }
+      - key: POSTGRES_DB
+        fromDatabase: { name: relict-postgres, property: database }
+
+      # Redis — fromService pulls the private-network host/port
+      - key: REDIS_HOST
+        fromService: { type: keyvalue, name: relict-redis, property: host }
+      - key: REDIS_PORT
+        fromService: { type: keyvalue, name: relict-redis, property: port }
+
+      # JWT signing key — auto-generated once, reused across deploys
+      - key: JWT_SECRET
+        generateValue: true
+
+      # S3-compatible object storage (configure in Render dashboard after deploy)
+      - key: MINIO_ENDPOINT
+        sync: false
+      - key: MINIO_ACCESS_KEY
+        sync: false
+      - key: MINIO_SECRET_KEY
+        sync: false
+      - key: MINIO_BUCKET
+        value: relict
+      - key: MINIO_SECURE
+        value: "true"
+
+      # CORS — set to the Vercel frontend URL in the dashboard
+      - key: CORS_ORIGINS
+        sync: false
+
+      # External APIs (set secrets in dashboard; blueprint must not carry real values)
+      - key: IUCN_REDLIST_TOKEN
+        sync: false
+      - key: GBIF_USERNAME
+        sync: false
+      - key: GBIF_PASSWORD
+        sync: false
+      - key: GBIF_EMAIL
+        sync: false
+      - key: NCBI_API_KEY
+        sync: false
+      - key: NCBI_EMAIL
+        sync: false
+
+  # ─── RQ Worker ───────────────────────────────────────────────────────
+  - type: worker
+    name: relict-worker
+    runtime: docker
+    plan: starter
+    rootDir: backend
+    dockerfilePath: ./Dockerfile.worker
+    autoDeploy: true
+    disk:
+      # Reference databases live here. SILVA alone is ~5 GB; size up for
+      # MIDORI2 + MitoFish. 20 GB is the Starter ceiling.
+      name: relict-references
+      mountPath: /data/references
+      sizeGB: 20
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+
+      # Transient per-job scratch — ephemeral is fine, cleaned up on exit
+      - key: WORKSPACES_ROOT
+        value: /tmp/workspaces
+      - key: REFERENCES_ROOT
+        value: /data/references
+
+      - key: POSTGRES_HOST
+        fromDatabase: { name: relict-postgres, property: host }
+      - key: POSTGRES_PORT
+        fromDatabase: { name: relict-postgres, property: port }
+      - key: POSTGRES_USER
+        fromDatabase: { name: relict-postgres, property: user }
+      - key: POSTGRES_PASSWORD
+        fromDatabase: { name: relict-postgres, property: password }
+      - key: POSTGRES_DB
+        fromDatabase: { name: relict-postgres, property: database }
+
+      - key: REDIS_HOST
+        fromService: { type: keyvalue, name: relict-redis, property: host }
+      - key: REDIS_PORT
+        fromService: { type: keyvalue, name: relict-redis, property: port }
+
+      # Worker needs the same JWT secret to decode tokens if it ever calls back
+      - key: JWT_SECRET
+        fromService: { type: web, name: relict-api, envVarKey: JWT_SECRET }
+
+      - key: MINIO_ENDPOINT
+        sync: false
+      - key: MINIO_ACCESS_KEY
+        sync: false
+      - key: MINIO_SECRET_KEY
+        sync: false
+      - key: MINIO_BUCKET
+        value: relict
+      - key: MINIO_SECURE
+        value: "true"
+
+      - key: IUCN_REDLIST_TOKEN
+        sync: false
+      - key: GBIF_USERNAME
+        sync: false
+      - key: GBIF_PASSWORD
+        sync: false
+      - key: GBIF_EMAIL
+        sync: false
+      - key: NCBI_API_KEY
+        sync: false
+      - key: NCBI_EMAIL
+        sync: false

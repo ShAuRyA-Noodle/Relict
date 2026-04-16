@@ -133,6 +133,61 @@ Full reports: [`docs/benchmarks/`](./docs/benchmarks/)
 
 ---
 
+## Deployment
+
+The repo ships with one-click blueprints for Render (backend) and Vercel (frontend).
+
+### Frontend → Vercel
+
+1. Import the repo into Vercel. It auto-detects Vite and uses [`vercel.json`](./vercel.json) for SPA rewrites.
+2. In **Project Settings → Environment Variables**, set `VITE_API_BASE_URL` to the Render API URL once the backend is live (e.g. `https://relict-api.onrender.com`).
+3. Redeploy.
+
+### Backend → Render (Blueprint)
+
+The [`render.yaml`](./render.yaml) blueprint provisions four services on Render in a single apply:
+
+| Service           | Type       | Purpose                                  |
+|-------------------|------------|------------------------------------------|
+| `relict-postgres` | Postgres   | Metadata, users, ASVs, taxonomy, results |
+| `relict-redis`    | Key-value  | RQ job queue + WebSocket pub/sub         |
+| `relict-api`      | Web (Docker) | FastAPI + WebSockets                   |
+| `relict-worker`   | Worker (Docker) | RQ pipeline executor + 20 GB disk   |
+
+**Steps:**
+
+1. Push the repo to GitHub.
+2. In Render: **New → Blueprint → Connect repository → Apply**.
+3. Object storage (not provisioned by the blueprint): create a bucket on **Cloudflare R2**, **AWS S3**, or **Backblaze B2**, then set on **both** `relict-api` and `relict-worker`:
+   - `MINIO_ENDPOINT` — e.g. `s3.amazonaws.com` or `<accountid>.r2.cloudflarestorage.com`
+   - `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`
+   - `MINIO_BUCKET` (default `relict`)
+   - `MINIO_SECURE=true`
+4. Set `CORS_ORIGINS` on `relict-api` to the Vercel URL, comma-separated if multiple (e.g. `https://relict.vercel.app,https://relict-git-main.vercel.app`).
+5. Populate secrets on both services (blueprint uses `sync: false` so nothing real is committed): `IUCN_REDLIST_TOKEN`, `GBIF_USERNAME`, `GBIF_PASSWORD`, `GBIF_EMAIL`, `NCBI_API_KEY`, `NCBI_EMAIL`.
+6. First-time setup — download reference databases onto the worker's persistent disk:
+   ```bash
+   render ssh relict-worker
+   bash scripts/download_references.sh
+   ```
+   SILVA 138.1 alone is ~5 GB; the blueprint provisions 20 GB which covers SILVA + MIDORI2 + MitoFish.
+
+### Why object storage isn't provisioned
+
+Render has no managed S3-compatible service, and the worker's disk is attached to a single instance — it can't back uploads from the API. The client in [`backend/app/services/storage.py`](./backend/app/services/storage.py) talks the S3 protocol via the MinIO Python SDK, so Cloudflare R2, AWS S3, and Backblaze B2 all work without code changes.
+
+### Deployment readiness checklist
+
+- [x] Config is fully env-var driven (CORS, storage, paths, secrets)
+- [x] No `.env` ever committed (enforced by [.gitignore](./.gitignore))
+- [x] Health + readiness probes (`/health`, `/ready`) wired for load balancer
+- [x] Argon2id password hashing + JWT refresh tokens
+- [x] Structured logging (`structlog`) with request IDs
+- [x] Frontend + backend on separate origins via `VITE_API_BASE_URL`
+- [ ] Rate limiting — not yet implemented; put Cloudflare or Render's built-in rate-limiter in front in the meantime
+
+---
+
 ## Tech Stack
 
 **Frontend:** React 18.3, TypeScript 5.8, Vite 5.4, Tailwind CSS, shadcn/ui, React Query, Three.js

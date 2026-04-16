@@ -35,7 +35,7 @@ async def enqueue_job(session: AsyncSession, *, job: Job) -> str:
     rq_job = queue.enqueue(
         WORKER_ENTRYPOINT,
         kwargs={"job_id": str(job.id)},
-        job_timeout="2h",        # Phase 1 stub finishes in seconds; real pipeline gets 2h
+        job_timeout="2h",        # upper bound for full QC -> taxonomy -> diversity run
         result_ttl=86_400,       # keep results for 1 day
         failure_ttl=604_800,     # keep failures for 7 days
         retry=None,

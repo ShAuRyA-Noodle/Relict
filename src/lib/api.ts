@@ -5,10 +5,11 @@
  * No mock data, no fake numbers, no placeholder responses.
  */
 
-// Use relative URLs so the Vite proxy forwards to the backend.
-// This makes the app work through ngrok (single tunnel on port 8080).
-const API_BASE = "";
-const API_V1 = `/api/v1`;
+// In dev, VITE_API_BASE_URL is empty so the Vite proxy forwards /api and
+// /ws to localhost:8000. In production (Vercel) set VITE_API_BASE_URL to
+// the Render backend origin, e.g. https://relict-api.onrender.com.
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
+const API_V1 = `${API_BASE}/api/v1`;
 
 // ─── Token management ─────────────────────────────────────────────
 
@@ -262,6 +263,8 @@ export async function getJobProvenance(jobId: string): Promise<ProvenanceManifes
 
 // ─── Exports ──────────────────────────────────────────────────────
 
+// Export URLs are absolute when API_BASE is set so <a href=...> works
+// across origins; otherwise relative so the Vite proxy can forward them.
 export function getDwcaUrl(jobId: string): string {
   return `${API_V1}/jobs/${jobId}/export/dwca`;
 }
@@ -301,8 +304,15 @@ export async function checkHealth(): Promise<{ status: string; version: string }
 export function createJobWebSocket(jobId: string): WebSocket | null {
   const token = getAccessToken();
   if (!token) return null;
-  // Use relative WebSocket URL so it works through ngrok/proxy
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const host = window.location.host;
-  return new WebSocket(`${protocol}//${host}/ws/jobs/${jobId}?token=${token}`);
+  // If VITE_API_BASE_URL is set (prod), derive the ws host from it so
+  // WebSocket traffic reaches the Render backend instead of Vercel.
+  // Otherwise fall back to the current origin (dev + ngrok path).
+  let wsUrl: string;
+  if (API_BASE) {
+    wsUrl = `${API_BASE.replace(/^http/, "ws")}/ws/jobs/${jobId}?token=${token}`;
+  } else {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    wsUrl = `${protocol}//${window.location.host}/ws/jobs/${jobId}?token=${token}`;
+  }
+  return new WebSocket(wsUrl);
 }

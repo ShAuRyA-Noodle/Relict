@@ -55,11 +55,26 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
 
     # ─── MinIO / object storage ───────────────────────────────────────
+    # MINIO_ENDPOINT works with any S3-compatible service (MinIO, AWS S3,
+    # Cloudflare R2, Backblaze B2). For R2 / S3 set MINIO_SECURE=true and
+    # MINIO_ENDPOINT to the host (e.g. "s3.amazonaws.com" or
+    # "<accountid>.r2.cloudflarestorage.com").
     MINIO_ENDPOINT: str = "minio:9000"
     MINIO_ACCESS_KEY: str
     MINIO_SECRET_KEY: SecretStr
     MINIO_BUCKET: str = "relict"
     MINIO_SECURE: bool = False
+
+    # ─── Worker filesystem layout ─────────────────────────────────────
+    # Per-job scratch directories live under WORKSPACES_ROOT and are
+    # deleted when the job finishes. The default works on Docker; on
+    # Render set this to a mounted disk (e.g. /var/data/workspaces) or
+    # leave it on /tmp for ephemeral usage.
+    WORKSPACES_ROOT: str = "/workspaces"
+    # Reference databases (SILVA, MIDORI2, MitoFish) live here and are
+    # too large to bake into the image. On Render attach a persistent
+    # disk at this path.
+    REFERENCES_ROOT: str = "/data/references"
 
     # ─── Security ─────────────────────────────────────────────────────
     JWT_SECRET: SecretStr

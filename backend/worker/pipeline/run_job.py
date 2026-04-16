@@ -48,8 +48,21 @@ from worker.pipeline import taxonomy as tax_stage
 
 log = get_logger("worker.pipeline")
 
-WORKSPACES_ROOT = Path("/workspaces")
-REFERENCES_ROOT = Path("/data/references")
+
+def _workspaces_root() -> Path:
+    """Resolve WORKSPACES_ROOT and create it if missing.
+
+    On Render the container's filesystem is ephemeral and the directory
+    won't exist until we mkdir it. On Docker Compose the image already
+    creates /workspaces, so this is a no-op.
+    """
+    root = Path(get_settings().WORKSPACES_ROOT)
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def _references_root() -> Path:
+    return Path(get_settings().REFERENCES_ROOT)
 
 
 def _sync_engine():
@@ -69,9 +82,10 @@ def _detect_reference_db(amplicon: str) -> Path | None:
     Returns None if the DB hasn't been downloaded yet (the taxonomy
     stage will raise a clear error).
     """
-    silva_dir = REFERENCES_ROOT / "silva"
-    mitofish_dir = REFERENCES_ROOT / "mitofish"
-    midori2_dir = REFERENCES_ROOT / "midori2"
+    references_root = _references_root()
+    silva_dir = references_root / "silva"
+    mitofish_dir = references_root / "mitofish"
+    midori2_dir = references_root / "midori2"
 
     candidates: dict[str, list[Path]] = {
         "16S_V4": [
@@ -150,7 +164,7 @@ def run_job(job_id: str) -> dict[str, str]:
         session.commit()
         _emit(uid, "job.started", "Pipeline started", progress=0.0)
 
-        workspace = WORKSPACES_ROOT / job_id
+        workspace = _workspaces_root() / job_id
         workspace.mkdir(parents=True, exist_ok=True)
 
         try:
