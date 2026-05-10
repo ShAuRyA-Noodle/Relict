@@ -75,6 +75,11 @@ def run(
         "--threads", str(params.threads),
         "--top_hits_only",
         "--output_no_hits",
+        # Search both strands — without this, ASVs in reverse orientation
+        # (common when users upload R2-only, or when the amplicon primer
+        # set produces reverse-complement reads) silently miss every hit
+        # and come back "unclassified" even when a real match exists.
+        "--strand", "both",
     ]
 
     if logger:

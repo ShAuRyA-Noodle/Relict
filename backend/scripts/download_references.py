@@ -52,23 +52,90 @@ class RefDB:
 DATABASES: dict[str, RefDB] = {
     "silva": RefDB(
         name="SILVA 138.1 SSU Ref NR99",
-        url="https://data.arb-silva.de/release_138_1/Exports/SILVA_138.1_SSURef_NR99_tax_silva.fasta.gz",
+        # The data.arb-silva.de subdomain serves a TLS cert that Windows
+        # schannel rejects (SEC_E_WRONG_PRINCIPAL). The www.arb-silva.de
+        # /fileadmin/... mirror has a valid cert for the same bytes.
+        url="https://www.arb-silva.de/fileadmin/silva_databases/release_138_1/Exports/SILVA_138.1_SSURef_NR99_tax_silva.fasta.gz",
         compressed_filename="SILVA_138.1_SSURef_NR99_tax_silva.fasta.gz",
         decompressed_filename="SILVA_138.1_SSURef_NR99_tax_silva.fasta",
-        description="16S/18S rRNA reference for bacteria, archaea, eukaryotes",
+        description="16S/18S rRNA reference for bacteria, archaea, eukaryotes (~5 GB)",
         citation="Quast et al. (2013) Nucleic Acids Res. 41(D1):D590-D596",
         license_note="Free for academic/non-commercial use. See https://www.arb-silva.de/silva-license-information/",
     ),
-    "mitofish": RefDB(
-        name="MitoFish complete+partial mitogenomes",
-        url="https://mitofish.aori.u-tokyo.ac.jp/files/complete_partial_mitogenomes.zip",
-        compressed_filename="complete_partial_mitogenomes.zip",
-        decompressed_filename="complete_partial_mitogenomes.fa",
-        description="12S fish mitochondrial reference for MiFish eDNA studies",
-        citation="Iwasaki et al. (2013) Mol Biol Evol 30(11):2531-2540",
-        license_note="Free for academic use",
+    # Small, reliable NCBI-hosted fallbacks. Tiny compared to SILVA
+    # (~10-50 MB each) so a user who can't get SILVA downloaded still
+    # has a working 16S / 18S / ITS reference. Not a replacement for
+    # SILVA at scale, but fine for demos, tests, and small studies.
+    "ncbi_16s_bacteria": RefDB(
+        name="NCBI RefSeq 16S rRNA (Bacteria)",
+        url="https://ftp.ncbi.nlm.nih.gov/refseq/TargetedLoci/Bacteria/bacteria.16SrRNA.fna.gz",
+        compressed_filename="bacteria.16SrRNA.fna.gz",
+        decompressed_filename="bacteria.16SrRNA.fna",
+        description="Curated bacterial 16S, tiny SILVA alternative (~50 MB)",
+        citation="NCBI RefSeq Targeted Loci, O'Leary et al. (2016) Nucleic Acids Res 44:D733",
+        license_note="Public domain",
+        needs_gunzip=True,
+        build_udb=True,
+    ),
+    "ncbi_16s_archaea": RefDB(
+        name="NCBI RefSeq 16S rRNA (Archaea)",
+        url="https://ftp.ncbi.nlm.nih.gov/refseq/TargetedLoci/Archaea/archaea.16SrRNA.fna.gz",
+        compressed_filename="archaea.16SrRNA.fna.gz",
+        decompressed_filename="archaea.16SrRNA.fna",
+        description="Curated archaeal 16S (~5 MB)",
+        citation="NCBI RefSeq Targeted Loci",
+        license_note="Public domain",
+        needs_gunzip=True,
+        build_udb=True,
+    ),
+    "ncbi_18s_fungi": RefDB(
+        name="NCBI RefSeq 18S rRNA (Fungi)",
+        url="https://ftp.ncbi.nlm.nih.gov/refseq/TargetedLoci/Fungi/fungi.18SrRNA.fna.gz",
+        compressed_filename="fungi.18SrRNA.fna.gz",
+        decompressed_filename="fungi.18SrRNA.fna",
+        description="Curated fungal 18S, 18S V9 fallback (~5 MB)",
+        citation="NCBI RefSeq Targeted Loci",
+        license_note="Public domain",
+        needs_gunzip=True,
+        build_udb=True,
+    ),
+    "ncbi_its_fungi": RefDB(
+        name="NCBI RefSeq ITS (Fungi)",
+        url="https://ftp.ncbi.nlm.nih.gov/refseq/TargetedLoci/Fungi/fungi.ITS.fna.gz",
+        compressed_filename="fungi.ITS.fna.gz",
+        decompressed_filename="fungi.ITS.fna",
+        description="Curated fungal ITS, ITS2 fallback (~5 MB)",
+        citation="NCBI RefSeq Targeted Loci",
+        license_note="Public domain",
+        needs_gunzip=True,
+        build_udb=True,
+    ),
+    # MIDORI2 replaces the old MitoFish downloader — the U-Tokyo MitoFish
+    # site is now JS-rendered and direct file URLs 404. MIDORI2 srRNA
+    # (BLAST uniq) covers the 12S MiFish use case and MIDORI2 CO1
+    # covers the COI Leray marker. Both are maintained, SHA-indexable,
+    # and hosted with a stable HTTPS URL pattern.
+    "midori2_12s": RefDB(
+        name="MIDORI2 GenBank269 srRNA (12S, BLAST uniq)",
+        url="https://www.reference-midori.info/download/Databases/GenBank269_2025-12-09/BLAST/uniq/fasta/MIDORI2_UNIQ_NUC_GB269_srRNA_BLAST.fasta.zip",
+        compressed_filename="MIDORI2_UNIQ_NUC_GB269_srRNA_BLAST.fasta.zip",
+        decompressed_filename="MIDORI2_UNIQ_NUC_GB269_srRNA_RAW.fasta",
+        description="12S rRNA reference for fish / vertebrate MiFish eDNA (~70 MB)",
+        citation="Leray et al. (2022) Env DNA 4(4):894-907",
+        license_note="CC-BY. See https://www.reference-midori.info/",
         needs_gunzip=False,
-        build_udb=False,
+        build_udb=True,
+    ),
+    "midori2_coi": RefDB(
+        name="MIDORI2 GenBank269 CO1 (BLAST uniq)",
+        url="https://www.reference-midori.info/download/Databases/GenBank269_2025-12-09/BLAST/uniq/fasta/MIDORI2_UNIQ_NUC_GB269_CO1_BLAST.fasta.zip",
+        compressed_filename="MIDORI2_UNIQ_NUC_GB269_CO1_BLAST.fasta.zip",
+        decompressed_filename="MIDORI2_UNIQ_NUC_GB269_CO1_RAW.fasta",
+        description="COI reference for invertebrate Leray eDNA (~1.8 GB)",
+        citation="Leray et al. (2022) Env DNA 4(4):894-907",
+        license_note="CC-BY. See https://www.reference-midori.info/",
+        needs_gunzip=False,
+        build_udb=True,
     ),
 }
 

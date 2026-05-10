@@ -84,26 +84,47 @@ def _detect_reference_db(amplicon: str) -> Path | None:
     """
     references_root = _references_root()
     silva_dir = references_root / "silva"
-    mitofish_dir = references_root / "mitofish"
-    midori2_dir = references_root / "midori2"
+    mitofish_dir = references_root / "mitofish"           # legacy, may not exist
+    midori2_dir = references_root / "midori2"             # legacy, may not exist
+    midori2_12s_dir = references_root / "midori2_12s"
+    midori2_coi_dir = references_root / "midori2_coi"
 
+    # Search order per marker: UDB indexes first (fast), then raw FASTA,
+    # then any *.fasta in the marker's folder as a final fallback. This
+    # lets us survive filename drift across MIDORI2 / SILVA releases.
     candidates: dict[str, list[Path]] = {
         "16S_V4": [
             silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.udb",
             silva_dir / "silva_138_99_merged.fasta",
             silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.fasta",
+            *(list(silva_dir.glob("*.fasta")) if silva_dir.exists() else []),
         ],
         "18S_V9": [
             silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.udb",
             silva_dir / "silva_138_99_merged.fasta",
             silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.fasta",
+            *(list(silva_dir.glob("*.fasta")) if silva_dir.exists() else []),
+        ],
+        "rbcL": [
+            silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.udb",
+            silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.fasta",
+        ],
+        "ITS2": [
+            silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.udb",
+            silva_dir / "SILVA_138.1_SSURef_NR99_tax_silva.fasta",
         ],
         "12S_MiFish": [
+            midori2_12s_dir / "MIDORI2_UNIQ_NUC_GB269_srRNA_RAW.udb",
+            midori2_12s_dir / "MIDORI2_UNIQ_NUC_GB269_srRNA_RAW.fasta",
             midori2_dir / "MIDORI2_UNIQ_NUC_GB269_srRNA_RAW.fasta",
+            *(list(midori2_12s_dir.glob("*.fasta")) if midori2_12s_dir.exists() else []),
             mitofish_dir / "complete_partial_mitogenomes.fa",
         ],
         "COI_Leray": [
+            midori2_coi_dir / "MIDORI2_UNIQ_NUC_GB269_CO1_RAW.udb",
+            midori2_coi_dir / "MIDORI2_UNIQ_NUC_GB269_CO1_RAW.fasta",
             midori2_dir / "MIDORI2_UNIQ_NUC_GB269_CO1_RAW.fasta",
+            *(list(midori2_coi_dir.glob("*CO1*.fasta")) if midori2_coi_dir.exists() else []),
             *(list(midori2_dir.glob("*CO1*.fasta")) if midori2_dir.exists() else []),
         ],
     }
@@ -112,7 +133,10 @@ def _detect_reference_db(amplicon: str) -> Path | None:
         if path.exists():
             return path
 
-    for search_dir in [silva_dir, mitofish_dir, midori2_dir]:
+    # Last-resort fallback — if no marker-specific DB resolves, pick the
+    # biggest FASTA anywhere under the references root so the pipeline
+    # can still produce a best-effort taxonomy rather than skipping.
+    for search_dir in [silva_dir, midori2_12s_dir, midori2_coi_dir, midori2_dir, mitofish_dir]:
         if search_dir.exists():
             fastas = list(search_dir.glob("*.fasta")) + list(search_dir.glob("*.fa"))
             if fastas:
