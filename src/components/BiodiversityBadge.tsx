@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useAnimation, useInView } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Leaf, TrendingUp } from "lucide-react";
-import { useRef } from "react";
+import { cn } from "@/lib/utils";
 
 interface BiodiversityBadgeProps {
   score: number;
@@ -15,163 +15,100 @@ interface BiodiversityBadgeProps {
 
 export const BiodiversityBadge = ({
   score,
-  label = "Biodiversity Index",
+  label = "Biodiversity index",
   size = "md",
   animated = true,
   showTrend = false,
-  className
+  className,
 }: BiodiversityBadgeProps) => {
-  const [currentScore, setCurrentScore] = useState(0);
+  const [current, setCurrent] = useState(0);
   const controls = useAnimation();
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true });
 
   const sizes = {
     sm: { ring: 60, stroke: 4, text: "text-sm" },
-    md: { ring: 80, stroke: 6, text: "text-base" },
-    lg: { ring: 120, stroke: 8, text: "text-xl" }
+    md: { ring: 80, stroke: 5, text: "text-base" },
+    lg: { ring: 120, stroke: 7, text: "text-xl" },
   };
+  const cfg = sizes[size];
+  const circumference = 2 * Math.PI * ((cfg.ring - cfg.stroke) / 2);
+  const dashoffset = circumference - (current / 100) * circumference;
 
-  const config = sizes[size];
-  const circumference = 2 * Math.PI * ((config.ring - config.stroke) / 2);
-  const strokeDasharray = circumference;
-  const strokeDashoffset = circumference - (currentScore / 100) * circumference;
-
-  // Color based on score
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-emerald";
-    if (score >= 60) return "text-yellow-500";
-    return "text-orange-500";
-  };
-
-  const getScoreRing = (score: number) => {
-    if (score >= 80) return "stroke-emerald";
-    if (score >= 60) return "stroke-yellow-500";
-    return "stroke-orange-500";
-  };
+  const tone = score >= 80 ? "text-success" : score >= 60 ? "text-amber-500" : "text-destructive";
+  const stroke = score >= 80 ? "stroke-[hsl(var(--success))]" : score >= 60 ? "stroke-amber-500" : "stroke-[hsl(var(--destructive))]";
 
   useEffect(() => {
-    if (inView && animated) {
-      controls.start({
-        scale: [0.8, 1.05, 1],
-        transition: { duration: 0.6, ease: "easeOut" }
-      });
-
-      // Animate score counting
-      const timer = setTimeout(() => {
-        const duration = 1500;
-        const steps = 60;
-        const increment = score / steps;
-        let current = 0;
-
-        const counter = setInterval(() => {
-          current += increment;
-          if (current >= score) {
-            setCurrentScore(score);
-            clearInterval(counter);
-          } else {
-            setCurrentScore(Math.floor(current));
-          }
-        }, duration / steps);
-
-        return () => clearInterval(counter);
-      }, 200);
-
-      return () => clearTimeout(timer);
-    }
+    if (!inView || !animated) return;
+    controls.start({ scale: [0.95, 1.02, 1], transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } });
+    const t = setTimeout(() => {
+      const dur = 1500;
+      const steps = 60;
+      const inc = score / steps;
+      let v = 0;
+      const id = setInterval(() => {
+        v += inc;
+        if (v >= score) {
+          setCurrent(score);
+          clearInterval(id);
+        } else {
+          setCurrent(Math.floor(v));
+        }
+      }, dur / steps);
+      return () => clearInterval(id);
+    }, 200);
+    return () => clearTimeout(t);
   }, [inView, animated, controls, score]);
 
   return (
     <motion.div
       ref={ref}
-      className={`inline-flex flex-col items-center space-y-3 ${className}`}
+      className={cn("inline-flex flex-col items-center gap-3", className)}
       animate={controls}
-      initial={{ scale: animated ? 0.8 : 1 }}
+      initial={{ scale: animated ? 0.95 : 1 }}
     >
-      {/* Radial Progress Ring */}
       <div className="relative">
-        <svg
-          width={config.ring}
-          height={config.ring}
-          className="transform -rotate-90"
-        >
-          {/* Background ring */}
+        <svg width={cfg.ring} height={cfg.ring} className="-rotate-90">
           <circle
-            cx={config.ring / 2}
-            cy={config.ring / 2}
-            r={(config.ring - config.stroke) / 2}
-            stroke="hsl(var(--muted))"
-            strokeWidth={config.stroke}
-            fill="transparent"
-            className="opacity-20"
+            cx={cfg.ring / 2}
+            cy={cfg.ring / 2}
+            r={(cfg.ring - cfg.stroke) / 2}
+            stroke="hsl(var(--border))"
+            strokeWidth={cfg.stroke}
+            fill="none"
           />
-          {/* Progress ring */}
           <motion.circle
-            cx={config.ring / 2}
-            cy={config.ring / 2}
-            r={(config.ring - config.stroke) / 2}
-            strokeWidth={config.stroke}
-            fill="transparent"
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
+            cx={cfg.ring / 2}
+            cy={cfg.ring / 2}
+            r={(cfg.ring - cfg.stroke) / 2}
+            strokeWidth={cfg.stroke}
+            fill="none"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashoffset}
             strokeLinecap="round"
-            className={`${getScoreRing(score)} data-point-glow`}
+            className={stroke}
             initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset }}
-            transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
+            animate={{ strokeDashoffset: dashoffset }}
+            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
           />
         </svg>
-
-        {/* Center content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <motion.div
-            className={`font-bold font-display ${config.text} ${getScoreColor(score)}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.3 }}
-          >
-            {Math.round(currentScore)}
-          </motion.div>
-          <div className="text-xs text-muted-foreground font-medium">
-            / 100
-          </div>
+          <span className={cn("font-display tabular-nums", cfg.text, tone)}>
+            {Math.round(current)}
+          </span>
+          <span className="text-[10px] text-muted-foreground">/ 100</span>
         </div>
-
-        {/* Floating icon */}
-        <motion.div
-          className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-emerald/10 flex items-center justify-center"
-          animate={{
-            y: [0, -2, 0],
-            scale: [1, 1.1, 1]
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
-          <Leaf className="w-3 h-3 text-emerald" />
-        </motion.div>
+        <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-success/10 flex items-center justify-center">
+          <Leaf className="w-3 h-3 text-success" />
+        </div>
       </div>
-
-      {/* Label and trend */}
       <div className="text-center space-y-1">
         <Badge variant="secondary" className="text-xs">
-          <span>{label}</span>
-          {showTrend && (
-            <TrendingUp className="w-3 h-3 ml-1 text-emerald" />
-          )}
+          {label}
+          {showTrend && <TrendingUp className="w-3 h-3 ml-1 text-success" />}
         </Badge>
-        
         {showTrend && (
-          <motion.div
-            className="text-xs text-emerald font-medium"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.3 }}
-          >
-            +12% from baseline
-          </motion.div>
+          <p className="text-xs text-success font-medium">+12% from baseline</p>
         )}
       </div>
     </motion.div>

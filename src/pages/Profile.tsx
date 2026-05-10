@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
@@ -6,18 +6,16 @@ import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
 import { listJobs, type JobPublic } from "@/lib/api";
 import {
-  User, Clock, FileText, CheckCircle, XCircle,
-  Loader2, LogOut, ChevronRight
+  User, FileText, CheckCircle, XCircle, Loader2, LogOut, ChevronRight, Plus,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function Profile() {
   const { user, isAuthenticated, loading, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      navigate("/demo");
-    }
+    if (!loading && !isAuthenticated) navigate("/demo");
   }, [loading, isAuthenticated, navigate]);
 
   const { data: jobsData, isLoading: jobsLoading } = useQuery({
@@ -29,84 +27,95 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
-
   if (!user) return null;
 
   const jobs = jobsData?.items || [];
-  const totalJobs = jobsData?.total || 0;
-  const succeededJobs = jobs.filter(j => j.status === "succeeded").length;
-  const failedJobs = jobs.filter(j => j.status === "failed").length;
-  const runningJobs = jobs.filter(j => j.status === "running" || j.status === "queued").length;
+  const total = jobsData?.total || 0;
+  const succeeded = jobs.filter((j) => j.status === "succeeded").length;
+  const failed = jobs.filter((j) => j.status === "failed").length;
+  const running = jobs.filter((j) => j.status === "running" || j.status === "queued").length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Header />
-      <main className="container mx-auto px-4 py-12 max-w-5xl">
-        {/* Profile header */}
-        <div className="border border-white/10 bg-black/60 backdrop-blur-sm p-8 mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center">
-                <User className="w-8 h-8 text-primary" />
+      <main className="pt-32 pb-24">
+        <div className="container-page max-w-5xl">
+          {/* Profile header */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="surface-card p-7 md:p-8 mb-8"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                  <User className="w-5 h-5 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-display text-xl truncate">{user.email}</p>
+                  <p className="text-xs text-muted-foreground font-mono mt-0.5 truncate">
+                    {user.id.slice(0, 8)}… · {user.role} · joined {new Date(user.created_at).toLocaleDateString()}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">{user.email}</h1>
-                <p className="text-sm text-gray-400 font-mono">
-                  ID: {user.id.slice(0, 8)}... | Role: {user.role} | Joined: {new Date(user.created_at).toLocaleDateString()}
-                </p>
-              </div>
+              <button
+                onClick={() => { logout(); navigate("/"); }}
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign out
+              </button>
             </div>
-            <button
-              onClick={() => { logout(); navigate("/"); }}
-              className="text-xs text-red-500 hover:text-red-400 border border-red-500/30 px-4 py-2 hover:bg-red-500/10 transition-colors uppercase flex items-center"
-            >
-              <LogOut className="w-3 h-3 mr-2" /> Sign Out
-            </button>
-          </div>
-        </div>
+          </motion.div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <StatCard label="Total Analyses" value={totalJobs} icon={<FileText className="w-5 h-5" />} />
-          <StatCard label="Completed" value={succeededJobs} icon={<CheckCircle className="w-5 h-5 text-green-500" />} />
-          <StatCard label="Failed" value={failedJobs} icon={<XCircle className="w-5 h-5 text-red-500" />} />
-          <StatCard label="In Progress" value={runningJobs} icon={<Loader2 className="w-5 h-5 text-yellow-500" />} />
-        </div>
-
-        {/* Job history */}
-        <div className="border border-white/10 bg-black/60 backdrop-blur-sm">
-          <div className="p-4 border-b border-white/10 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white uppercase tracking-wide">Analysis History</h2>
-            <Link to="/demo" className="text-xs text-primary hover:text-white border border-primary/30 px-3 py-1 hover:bg-primary/10 transition-colors uppercase">
-              New Analysis
-            </Link>
+          {/* Stat row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <Stat label="Total" value={total} icon={<FileText className="w-4 h-4 text-muted-foreground" />} />
+            <Stat label="Completed" value={succeeded} icon={<CheckCircle className="w-4 h-4 text-success" />} />
+            <Stat label="Failed" value={failed} icon={<XCircle className="w-4 h-4 text-destructive" />} />
+            <Stat label="In progress" value={running} icon={<Loader2 className="w-4 h-4 text-amber-500" />} />
           </div>
 
-          {jobsLoading ? (
-            <div className="p-12 text-center text-gray-500">
-              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
-              Loading history...
-            </div>
-          ) : jobs.length === 0 ? (
-            <div className="p-12 text-center">
-              <FileText className="w-12 h-12 mx-auto text-gray-600 mb-4" />
-              <p className="text-gray-400 mb-4">No analyses yet</p>
-              <Link to="/demo" className="text-primary hover:underline text-sm">
-                Upload your first FASTQ to get started
+          {/* Job list */}
+          <div className="surface-card overflow-hidden">
+            <div className="p-5 md:p-6 border-b border-border flex items-center justify-between">
+              <h2 className="font-display text-lg">Analysis history</h2>
+              <Link
+                to="/demo"
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-border text-sm hover:bg-muted transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                New
               </Link>
             </div>
-          ) : (
-            <div className="divide-y divide-white/5">
-              {jobs.map((job) => (
-                <JobRow key={job.id} job={job} />
-              ))}
-            </div>
-          )}
+
+            {jobsLoading ? (
+              <div className="p-12 text-center text-muted-foreground">
+                <Loader2 className="w-5 h-5 animate-spin mx-auto mb-3" />
+                Loading…
+              </div>
+            ) : jobs.length === 0 ? (
+              <div className="p-12 text-center">
+                <FileText className="w-10 h-10 mx-auto text-muted-foreground/40 mb-4" />
+                <p className="text-muted-foreground mb-4">No analyses yet.</p>
+                <Link to="/demo" className="text-primary hover:underline text-sm">
+                  Upload your first FASTQ →
+                </Link>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {jobs.map((j) => (
+                  <JobRow key={j.id} job={j} />
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </main>
       <Footer />
@@ -114,55 +123,55 @@ export default function Profile() {
   );
 }
 
-function StatCard({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
-  return (
-    <div className="border border-white/10 bg-black/60 p-4">
-      <div className="flex items-center justify-between mb-2">
-        {icon}
-        <span className="text-2xl font-bold text-white font-mono">{value}</span>
-      </div>
-      <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
+const Stat = ({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) => (
+  <div className="surface-card p-5">
+    <div className="flex items-center justify-between mb-3">
+      {icon}
+      <span className="font-display text-2xl tabular-nums">{value}</span>
     </div>
-  );
-}
+    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
+  </div>
+);
+
+const STATUS = {
+  succeeded: { label: "Done",     cls: "bg-success/10 text-success border-success/20" },
+  failed:    { label: "Failed",   cls: "bg-destructive/10 text-destructive border-destructive/20" },
+  running:   { label: "Running",  cls: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+  queued:    { label: "Queued",   cls: "bg-muted text-muted-foreground border-border" },
+  cancelled: { label: "Cancelled", cls: "bg-muted text-muted-foreground border-border" },
+} as const;
 
 function JobRow({ job }: { job: JobPublic }) {
-  const statusConfig: Record<string, { color: string; label: string }> = {
-    succeeded: { color: "text-green-500 bg-green-500/10 border-green-500/30", label: "DONE" },
-    failed: { color: "text-red-500 bg-red-500/10 border-red-500/30", label: "FAIL" },
-    running: { color: "text-yellow-500 bg-yellow-500/10 border-yellow-500/30", label: "RUNNING" },
-    queued: { color: "text-blue-500 bg-blue-500/10 border-blue-500/30", label: "QUEUED" },
-    cancelled: { color: "text-gray-500 bg-gray-500/10 border-gray-500/30", label: "CANCELLED" },
-  };
-
-  const s = statusConfig[job.status] || statusConfig.queued;
+  const s = STATUS[job.status as keyof typeof STATUS] || STATUS.queued;
   const created = new Date(job.created_at);
   const runtime = job.started_at && job.finished_at
     ? ((new Date(job.finished_at).getTime() - new Date(job.started_at).getTime()) / 1000).toFixed(1) + "s"
-    : "-";
+    : "—";
 
   return (
-    <Link
-      to={job.status === "succeeded" ? `/jobs/${job.id}` : "#"}
-      className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors group"
-    >
-      <div className="flex items-center space-x-4">
-        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 border ${s.color}`}>
-          {s.label}
-        </span>
-        <div>
-          <p className="text-sm text-white font-mono">
-            {job.id.slice(0, 12)}...
-          </p>
-          <p className="text-xs text-gray-500">
-            {created.toLocaleDateString()} {created.toLocaleTimeString()} | {job.amplicon} | Runtime: {runtime}
-            {job.pipeline_version && ` | v${job.pipeline_version}`}
-          </p>
+    <li>
+      <Link
+        to={job.status === "succeeded" ? `/jobs/${job.id}` : "#"}
+        className={`flex items-center justify-between gap-4 p-4 md:p-5 transition-colors group ${
+          job.status === "succeeded" ? "hover:bg-muted" : "cursor-default"
+        }`}
+      >
+        <div className="flex items-center gap-4 min-w-0">
+          <span className={`shrink-0 inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-[var(--radius-xs)] border ${s.cls}`}>
+            {s.label}
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-mono truncate">{job.id.slice(0, 12)}…</p>
+            <p className="text-xs text-muted-foreground">
+              {created.toLocaleDateString()} · {created.toLocaleTimeString()} · {job.amplicon} · {runtime}
+              {job.pipeline_version && ` · v${job.pipeline_version}`}
+            </p>
+          </div>
         </div>
-      </div>
-      {job.status === "succeeded" && (
-        <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-primary transition-colors" />
-      )}
-    </Link>
+        {job.status === "succeeded" && (
+          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
+        )}
+      </Link>
+    </li>
   );
 }

@@ -1,74 +1,88 @@
-import { useEffect, useState } from "react"
-import { motion, useSpring } from "framer-motion"
+import { useEffect, useState } from "react";
+import { motion, useSpring } from "framer-motion";
 
+/**
+ * Subtle, theme-aware cursor.
+ * Disabled on touch devices (no hover capability).
+ */
 export default function CustomCursor() {
-  const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [clicked, setClicked] = useState(false)
-  const [hovered, setHovered] = useState(false)
+  const [enabled, setEnabled] = useState(false);
+  const [clicked, setClicked] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
-  // Use framer-motion springs for that physics-based snappy delay
-  const springConfig = { damping: 25, stiffness: 300, mass: 0.5 }
-  const cursorX = useSpring(0, springConfig)
-  const cursorY = useSpring(0, springConfig)
+  const springConfig = { damping: 26, stiffness: 320, mass: 0.45 };
+  const cursorX = useSpring(0, springConfig);
+  const cursorY = useSpring(0, springConfig);
+  const dotX = useSpring(0, { damping: 38, stiffness: 600, mass: 0.2 });
+  const dotY = useSpring(0, { damping: 38, stiffness: 600, mass: 0.2 });
 
   useEffect(() => {
+    // Only show cursor on devices that support a fine pointer
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setEnabled(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
+
     const moveCursor = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY })
-      cursorX.set(e.clientX - 16) // center offset (32/2)
-      cursorY.set(e.clientY - 16)
-    }
+      cursorX.set(e.clientX - 14);
+      cursorY.set(e.clientY - 14);
+      dotX.set(e.clientX - 2);
+      dotY.set(e.clientY - 2);
+    };
 
-    const handleTagHover = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName.toLowerCase() === "a" ||
-        target.tagName.toLowerCase() === "button" ||
-        target.closest("a") ||
-        target.closest("button")
-      ) {
-        setHovered(true)
-      } else {
-        setHovered(false)
-      }
-    }
+    const handleHover = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      const interactive =
+        t.closest("a, button, [role='button'], input, textarea, select, [data-cursor='hover']");
+      setHovered(!!interactive);
+    };
 
-    const mouseDown = () => setClicked(true)
-    const mouseUp = () => setClicked(false)
+    const down = () => setClicked(true);
+    const up = () => setClicked(false);
 
-    window.addEventListener("mousemove", moveCursor)
-    window.addEventListener("mousemove", handleTagHover)
-    window.addEventListener("mousedown", mouseDown)
-    window.addEventListener("mouseup", mouseUp)
-
+    window.addEventListener("mousemove", moveCursor, { passive: true });
+    window.addEventListener("mousemove", handleHover, { passive: true });
+    window.addEventListener("mousedown", down);
+    window.addEventListener("mouseup", up);
     return () => {
-      window.removeEventListener("mousemove", moveCursor)
-      window.removeEventListener("mousemove", handleTagHover)
-      window.removeEventListener("mousedown", mouseDown)
-      window.removeEventListener("mouseup", mouseUp)
-    }
-  }, [cursorX, cursorY])
+      window.removeEventListener("mousemove", moveCursor);
+      window.removeEventListener("mousemove", handleHover);
+      window.removeEventListener("mousedown", down);
+      window.removeEventListener("mouseup", up);
+    };
+  }, [enabled, cursorX, cursorY, dotX, dotY]);
+
+  if (!enabled) return null;
 
   return (
     <>
       <motion.div
-        className="fixed top-0 left-0 w-8 h-8 rounded-full border border-primary pointer-events-none z-[9999] mix-blend-difference"
+        className="fixed top-0 left-0 w-7 h-7 rounded-full pointer-events-none z-[9999]"
         style={{
           x: cursorX,
           y: cursorY,
-          scale: clicked ? 0.8 : hovered ? 1.5 : 1,
-          backgroundColor: hovered ? "rgba(18, 184, 134, 0.2)" : "transparent",
+          scale: clicked ? 0.85 : hovered ? 1.45 : 1,
+          border: "1px solid hsl(var(--foreground) / 0.45)",
+          backgroundColor: hovered ? "hsl(var(--primary) / 0.12)" : "transparent",
+          mixBlendMode: "difference",
         }}
-        transition={{ scale: { type: "spring", stiffness: 300, damping: 20 } }}
+        transition={{ scale: { type: "spring", stiffness: 360, damping: 24 } }}
       />
-      {/* Tiny center dot */}
       <motion.div
-        className="fixed top-0 left-0 w-1.5 h-1.5 bg-primary rounded-full pointer-events-none z-[9999]"
+        className="fixed top-0 left-0 w-1 h-1 rounded-full pointer-events-none z-[9999]"
         style={{
-          x: position.x - 3,
-          y: position.y - 3,
+          x: dotX,
+          y: dotY,
+          backgroundColor: "hsl(var(--foreground))",
+          mixBlendMode: "difference",
         }}
-        transition={{ type: "tween", ease: "linear", duration: 0 }}
       />
     </>
-  )
+  );
 }

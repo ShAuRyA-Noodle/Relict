@@ -1,182 +1,130 @@
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { ShieldAlert, Terminal } from "lucide-react";
+import { ShieldAlert, CheckCircle2, Loader2 } from "lucide-react";
 
-const dbMounts = [
-  { id: "mnt_01", name: "SILVA_138.1", type: "16S_18S_rRNA", status: "OK", latency: "12ms" },
-  { id: "mnt_02", name: "MIDORI2", type: "COI_12S", status: "OK", latency: "24ms" },
-  { id: "mnt_03", name: "GBIF_GLOBAL", type: "GEO_DISTR", status: "OK", latency: "45ms" },
-  { id: "mnt_04", name: "IUCN_REDLIST", type: "CONSRV_STAT", status: "OK", latency: "18ms" },
-  { id: "mnt_05", name: "NCBI_GENBANK", type: "SEQ_ARCHIVE", status: "SYNCING", latency: "112ms" },
-];
+const dbs = [
+  { name: "SILVA 138.1",   role: "16S / 18S rRNA",       status: "online", latency: 12 },
+  { name: "MIDORI2",       role: "COI / 12S",            status: "online", latency: 24 },
+  { name: "GBIF",          role: "Occurrence records",    status: "online", latency: 45 },
+  { name: "IUCN Red List", role: "Conservation status",   status: "online", latency: 18 },
+  { name: "NCBI GenBank",  role: "Sequence archive",      status: "syncing", latency: 112 },
+] as const;
 
-const Counter = ({ from, to, decimal = false }: { from: number; to: number; decimal?: boolean }) => {
-  const [count, setCount] = useState(from);
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true });
+const Counter = ({ from, to, decimals = 0, suffix = "" }: { from: number; to: number; decimals?: number; suffix?: string }) => {
+  const [v, setV] = useState(from);
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
 
   useEffect(() => {
-    if (inView) {
-      let startTime: number;
-      let animationFrame: number;
-      const duration = 2000;
-
-      const animate = (time: number) => {
-        if (!startTime) startTime = time;
-        const progress = Math.min((time - startTime) / duration, 1);
-        const ease = 1 - Math.pow(1 - progress, 5); // super fast start, slow end
-        setCount(from + (to - from) * ease);
-
-        if (progress < 1) {
-          animationFrame = requestAnimationFrame(animate);
-        }
-      };
-      
-      const timeoutId = setTimeout(() => {
-        animationFrame = requestAnimationFrame(animate);
-      }, 500);
-
-      return () => {
-        clearTimeout(timeoutId);
-        cancelAnimationFrame(animationFrame);
-      };
-    }
+    if (!inView) return;
+    let raf = 0;
+    const start = performance.now();
+    const dur = 1600;
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - t, 4);
+      setV(from + (to - from) * eased);
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, [inView, from, to]);
 
-  return <span ref={ref}>{decimal ? count.toFixed(1) : Math.floor(count)}</span>;
+  return (
+    <span ref={ref}>
+      {v.toFixed(decimals)}{suffix}
+    </span>
+  );
 };
 
 export const CredibilitySection = () => {
   return (
-    <section className="py-24 bg-transparent border-t border-white/5 relative overflow-hidden font-mono">
-      <div className="container mx-auto px-4 md:px-8 max-w-6xl">
-        
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-12">
-          
-          {/* Left Column - Diagnostic Readouts */}
-          <div className="space-y-8">
-            <div>
-              <div className="flex items-center space-x-2 text-primary text-xs uppercase tracking-widest mb-4">
-                <span className="w-2 h-2 bg-primary animate-pulse"></span>
-                <span>System Architecture</span>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-heading font-black text-white uppercase tracking-tighter mb-4">
-                Global <span className="text-neon-cyan">Mounts.</span>
-              </h2>
-              <p className="text-sm text-gray-400">
-                Data pipeline inherently relies on version-pinned public reference databases. Sequence alignments are immutable and cryptographically audited.
-              </p>
-            </div>
-
-            {/* Performance Metrics Terminal */}
-            <div className="border border-white/20 bg-black p-6 hud-bracket shadow-[0_0_15px_rgba(0,0,0,1)]">
-              <div className="flex justify-between text-xs text-gray-500 mb-6 border-b border-white/10 pb-2">
-                <span>SYSTEM_CAPABILITIES</span>
-                <span>PERF_MONITOR</span>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <div className="text-xs text-gray-400 mb-1">TOTAL_REFERENCE_SEQUENCES</div>
-                  <div className="text-3xl font-bold text-white flex items-baseline">
-                    <span className="text-neon-cyan mr-1">&gt;</span>
-                    <Counter from={0} to={2.4} decimal />
-                    <span className="text-primary text-lg ml-2">M</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-xs text-gray-400 mb-1">BENCHMARK_ASSIGNMENT_RATE</div>
-                  <div className="text-3xl font-bold text-white flex items-baseline">
-                    <span className="text-neon-cyan mr-1">&gt;</span>
-                    <Counter from={80} to={100} />
-                    <span className="text-primary text-lg ml-2">%</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-xs text-gray-400 mb-1">PROVENANCE_HASH_MATCH</div>
-                  <div className="text-3xl font-bold text-white flex items-baseline">
-                    <span className="text-neon-cyan mr-1">&gt;</span>
-                    <Counter from={0} to={100} />
-                    <span className="text-primary text-lg ml-2">%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Server/Database Mount Log */}
+    <section className="relative py-24 md:py-32 border-t border-border">
+      <div className="container-page">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-12 lg:gap-16">
+          {/* Left: stats */}
           <div>
-            <div className="border border-white/20 bg-[#0a0a0a] w-full h-full min-h-[400px] flex flex-col">
-              <div className="bg-white/5 border-b border-white/20 py-2 px-4 flex items-center justify-between text-xs text-gray-400">
-                <div className="flex items-center space-x-2">
-                  <Terminal className="w-3 h-3" />
-                  <span>mount_databases.sh</span>
-                </div>
-              </div>
-              
-              <div className="p-4 sm:p-6 text-xs sm:text-sm text-gray-300 font-mono flex-grow space-y-2 overflow-hidden relative">
-                <div className="text-gray-500 mb-4 font-bold"># Initializing remote volumes...</div>
-                
-                {dbMounts.map((db, i) => (
-                  <motion.div 
-                    key={db.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.5 + i * 0.15 }}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/5 pb-2"
-                  >
-                    <div className="flex space-x-4">
-                      <span className="text-gray-600">[{db.id}]</span>
-                      <span className="text-neon-cyan font-bold w-32">{db.name}</span>
-                      <span className="text-gray-500 hidden sm:inline-block w-32 truncate">{db.type}</span>
-                    </div>
-                    <div className="flex justify-between sm:justify-end sm:space-x-8 mt-1 sm:mt-0">
-                      <span className={db.status === "OK" ? "text-neon-green" : "text-yellow-500"}>
-                        {db.status}
-                      </span>
-                      <span className="text-gray-600 text-right w-12">{db.latency}</span>
-                    </div>
-                  </motion.div>
-                ))}
+            <p className="eyebrow mb-5">
+              <span className="eyebrow-dot" />
+              Reference layer
+            </p>
+            <h2 className="h-display text-display-lg text-balance mb-6">
+              Built on version-pinned, public reference databases.
+            </h2>
+            <p className="text-muted-foreground leading-relaxed mb-10 max-w-xl">
+              Every alignment is bound to a database version and tool build that ships in
+              the provenance manifest. No silent migrations. No hidden fine-tunes.
+            </p>
 
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 2 }}
-                  className="mt-6 pt-4 text-green-500 font-bold"
-                >
-                  Volumes mounted successfully. System ready for query.
-                </motion.div>
-                <div className="mt-2 text-gray-500">
-                  root@relict-node-01:~# <motion.span animate={{opacity: [1,0,1]}} transition={{duration: 1, repeat: Infinity}}>_</motion.span>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-px overflow-hidden rounded-[var(--radius)] border border-border bg-border">
+              <Stat label="Reference sequences" value={<><Counter from={0} to={2.4} decimals={1} /><span className="text-muted-foreground ml-1">M</span></>} />
+              <Stat label="Pinned DB versions" value={<><Counter from={0} to={5} /></>} />
+              <Stat label="Hash-verified outputs" value={<><Counter from={0} to={100} suffix="%" /></>} />
             </div>
           </div>
-          
+
+          {/* Right: database table */}
+          <div className="surface-card p-6 md:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm font-medium">Reference databases</p>
+              <span className="font-mono text-[11px] text-muted-foreground">live status</span>
+            </div>
+
+            <ul className="divide-y divide-border">
+              {dbs.map((db, i) => (
+                <motion.li
+                  key={db.name}
+                  initial={{ opacity: 0, y: 8 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex items-center justify-between py-3.5"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {db.status === "online" ? (
+                      <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+                    ) : (
+                      <Loader2 className="w-4 h-4 text-muted-foreground animate-spin shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{db.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{db.role}</p>
+                    </div>
+                  </div>
+                  <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                    {db.latency}ms
+                  </span>
+                </motion.li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        {/* Warning Banner */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
+        {/* Scope notice */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-16 border border-yellow-500/50 bg-yellow-500/5 p-6 flex flex-col md:flex-row md:items-center gap-6"
+          transition={{ duration: 0.5 }}
+          className="mt-16 surface-card p-6 md:p-7 flex flex-col md:flex-row md:items-center gap-4 md:gap-6"
         >
-          <ShieldAlert className="w-8 h-8 text-yellow-500 shrink-0" />
-          <div>
-            <h4 className="text-yellow-500 font-bold text-sm uppercase mb-1 drop-shadow-[0_0_10px_rgba(234,179,8,0.3)]">ATTENTION: Research Scope Limitation</h4>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Output manifests are intended for <span className="text-white">environmental studies, baseline monitoring, and bioinformatics research</span>. RELICT_SYS outputs are NOT clinically, legally, or forensically certified. 
+          <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium mb-1">Research scope only</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Outputs are intended for environmental studies, baseline monitoring, and
+              bioinformatics research. Not clinically, legally, or forensically certified.
             </p>
           </div>
         </motion.div>
-        
       </div>
     </section>
   );
 };
+
+const Stat = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <div className="bg-card p-6">
+    <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground mb-2">{label}</p>
+    <p className="font-display text-3xl tracking-tight tabular-nums">{value}</p>
+  </div>
+);

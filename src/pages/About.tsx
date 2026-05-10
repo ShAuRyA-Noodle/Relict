@@ -1,91 +1,101 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Terminal, Database, ShieldAlert, BookOpen, ExternalLink, Mail, Github, Linkedin } from "lucide-react";
+import { Github, Linkedin, Mail, ExternalLink, Database, BookOpen } from "lucide-react";
+import { motion } from "framer-motion";
+
+const dependencies = [
+  { name: "NCBI Sequence Read Archive", role: "Public sequencing data" },
+  { name: "SILVA 138.1",                role: "rRNA reference taxonomy" },
+  { name: "MIDORI2",                    role: "COI / 12S references" },
+  { name: "GBIF",                       role: "Occurrence records" },
+  { name: "IUCN Red List",              role: "Conservation assessments" },
+  { name: "MGnify (EMBL-EBI)",          role: "Metagenomic studies" },
+];
+
+const refs = [
+  { title: "DNABERT-S: pioneering species differentiation", venue: "arXiv (2024)" },
+  { title: "AI-assisted eDNA for marine monitoring",        venue: "MDPI (2024)" },
+  { title: "VSEARCH: a versatile open-source tool for metagenomics", venue: "PeerJ (2016)" },
+  { title: "DADA2: high-resolution sample inference",       venue: "Nature Methods (2016)" },
+  { title: "The SILVA ribosomal RNA gene database project", venue: "NAR (2013)" },
+];
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-transparent font-mono relative">
+    <div className="min-h-screen">
       <Header />
-      <main className="pt-32 pb-24 relative z-10">
-        <div className="container mx-auto px-4 md:px-8 max-w-5xl">
-
-          <div className="mb-16">
-            <div className="flex items-center space-x-2 text-primary text-xs uppercase tracking-widest mb-4">
-              <span className="w-2 h-2 bg-primary"></span>
-              <span>System Documentation</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-heading font-black text-white uppercase tracking-tighter mb-4 flex items-center">
-              Architecture <span className="text-neon-cyan ml-3">Nodes.</span>
-              <Terminal className="w-8 h-8 ml-4 text-gray-500" />
-            </h1>
-            <p className="text-sm text-gray-400 max-w-2xl border-l border-white/20 pl-4 py-1">
-              RELIC_SYS is engineered to push environmental DNA methodologies beyond academic silos. By combining modern AI, massive concurrency, and strict scientific provenance, we synthesize actionable endpoints.
+      <main className="pt-32 pb-24">
+        <div className="container-page max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-14 max-w-3xl"
+          >
+            <p className="eyebrow mb-5">
+              <span className="eyebrow-dot" />
+              About
             </p>
-          </div>
+            <h1 className="h-display text-display-lg mb-5 text-balance">
+              An independent, end-to-end environmental DNA platform.
+            </h1>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Relict is designed, engineered, and deployed by a single developer — from
+              research design and pipeline architecture to data engineering, frontend,
+              and deployment. Built to meet real-world scientific needs, not benchmarks
+              for their own sake.
+            </p>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mb-16">
-            {/* Master Node Panel */}
-            <div className="border border-secondary bg-black/60 backdrop-blur-md p-6 hud-panel relative shadow-[inset_0_0_30px_rgba(0,240,255,0.1)]">
-              <div className="absolute top-0 right-0 p-2 bg-secondary text-black text-[10px] font-bold uppercase tracking-widest">
-                SYS_ADMIN
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-5 mb-12">
+            {/* Author panel */}
+            <div className="surface-card p-7 md:p-8">
+              <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground mb-4">
+                Author
               </div>
-              <div className="mb-6">
-                <div className="text-white font-bold text-xl uppercase tracking-widest mb-1">Shaurya Punj</div>
-                <div className="text-secondary text-xs uppercase">Primary Architect // Full-Stack Eng</div>
-              </div>
-              <div className="text-xs text-gray-400 leading-relaxed space-y-4 font-light">
-                <p>Relict is a fully independent, end-to-end research platform designed, engineered, and deployed by a single developer.</p>
-                <p>Every layer of the system - research design, machine learning integration, database engineering, visualization, and deployment - has been independently built to meet real-world scientific needs.</p>
-              </div>
-              <div className="mt-8 pt-4 border-t border-secondary/30 flex items-center space-x-4">
-                <a href="https://github.com/ShAuRyA-Noodle" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
-                  <Github className="w-4 h-4" />
-                </a>
-                <a href="https://www.linkedin.com/in/shaurya-punj-2287513b3/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
-                  <Linkedin className="w-4 h-4" />
-                </a>
-                <a href="https://www.shauryapunj.com/contact" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded border border-secondary/50 flex items-center justify-center text-secondary hover:bg-secondary/20 transition-colors">
-                  <Mail className="w-4 h-4" />
-                </a>
+              <h2 className="h-display text-2xl mb-1">Shaurya Punj</h2>
+              <p className="text-sm text-primary mb-5">Architect · Full-stack engineer · ML researcher</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Built every layer of Relict — research design, ML integration,
+                bioinformatics pipelines, database engineering, visualization, and
+                deployment — to meet real scientific needs.
+              </p>
+              <div className="mt-6 flex items-center gap-1.5">
+                <SocialIcon href="https://github.com/ShAuRyA-Noodle"  Icon={Github}   label="GitHub" />
+                <SocialIcon href="https://www.linkedin.com/in/shaurya-punj-2287513b3/" Icon={Linkedin} label="LinkedIn" />
+                <SocialIcon href="https://www.shauryapunj.com/contact" Icon={Mail}    label="Contact" />
               </div>
             </div>
 
-            {/* Scientific Foundations */}
-            <div className="space-y-6">
-              <div className="border border-white/20 bg-black/60 p-6 hud-bracket relative">
-                <div className="flex items-center space-x-2 border-b border-white/10 pb-2 mb-4 text-xs text-gray-500">
-                  <Database className="w-4 h-4" />
-                  <span>UPSTREAM_DEPENDENCIES</span>
+            {/* Dependencies + theory */}
+            <div className="space-y-5">
+              <div className="surface-card p-7">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground mb-4">
+                  <Database className="w-3.5 h-3.5" />
+                  Upstream dependencies
                 </div>
-                <ul className="space-y-3">
-                  {[
-                    { node: "NCBI Sequence Read Archive", tag: "RAW_DATA" },
-                    { node: "SILVA rRNA 138.1", tag: "TAXONOMY" },
-                    { node: "GBIF & IUCN Red List", tag: "CONSERVATION" },
-                    { node: "MGnify (EMBL-EBI)", tag: "METAGENOMICS" }
-                  ].map(dep => (
-                    <li key={dep.node} className="flex justify-between items-center text-sm">
-                      <span className="text-white uppercase font-bold">{dep.node}</span>
-                      <span className="text-[10px] text-primary border border-primary/30 px-2 py-0.5">{dep.tag}</span>
+                <ul className="divide-y divide-border">
+                  {dependencies.map((d) => (
+                    <li key={d.name} className="flex items-center justify-between py-2.5">
+                      <span className="text-sm">{d.name}</span>
+                      <span className="text-xs text-muted-foreground">{d.role}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="border border-white/20 bg-black/60 p-6 hud-bracket relative">
-                <div className="flex items-center space-x-2 border-b border-white/10 pb-2 mb-4 text-xs text-gray-500">
-                  <BookOpen className="w-4 h-4" />
-                  <span>THEORETICAL_FOUNDATIONS</span>
+              <div className="surface-card p-7">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground mb-4">
+                  <BookOpen className="w-3.5 h-3.5" />
+                  Theoretical foundations
                 </div>
-                <ul className="space-y-4">
-                  {[
-                    { pub: "DNABERT-S: Pioneering Species Differentiation", org: "arXiv (2024)" },
-                    { pub: "AI-Assisted eDNA for Marine Monitoring", org: "MDPI (2024)" }
-                  ].map(ref => (
-                    <li key={ref.pub} className="border-l-2 border-gray-600 pl-3">
-                      <div className="text-sm text-gray-300 font-bold uppercase">{ref.pub}</div>
-                      <div className="text-xs text-gray-500 flex items-center mt-1">
-                        <ExternalLink className="w-3 h-3 mr-1" /> {ref.org}
+                <ul className="space-y-3">
+                  {refs.map((r) => (
+                    <li key={r.title} className="flex items-baseline gap-3">
+                      <span className="w-1 h-1 rounded-full bg-foreground/40 translate-y-[6px]" />
+                      <div className="min-w-0">
+                        <p className="text-sm leading-snug">{r.title}</p>
+                        <p className="text-xs text-muted-foreground">{r.venue}</p>
                       </div>
                     </li>
                   ))}
@@ -94,23 +104,42 @@ const About = () => {
             </div>
           </div>
 
-          <div className="border border-yellow-500/50 bg-black/80 p-8 hud-panel text-center relative overflow-hidden">
-            <ShieldAlert className="w-12 h-12 text-yellow-500 mx-auto mb-4 opacity-50" />
-            <div className="text-yellow-500 font-bold tracking-widest uppercase mb-2">Notice: Open Connectivity Protocol</div>
-            <p className="text-gray-400 text-sm max-w-2xl mx-auto mb-6">
-              RELICT_SYS is fully open-source (MIT Licensed) and available for academic collaboration. External researchers seeking pipeline access or applied benchmarking protocols may initiate contact sequence.
+          {/* Collaboration CTA */}
+          <div className="surface-elevated bg-gradient-hero p-10 md:p-14 text-center">
+            <h3 className="h-display text-2xl md:text-3xl mb-3 text-balance">
+              Open to academic collaboration.
+            </h3>
+            <p className="text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed">
+              Relict is MIT-licensed. External researchers seeking pipeline access,
+              applied benchmarking protocols, or co-deployment can reach out directly.
             </p>
-            <a href="https://www.shauryapunj.com/contact" target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-6 py-3 border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black font-bold text-sm tracking-widest transition-all">
-              <Mail className="w-4 h-4 mr-2" />
-              INITIATE_HANDSHAKE
+            <a
+              href="https://www.shauryapunj.com/contact"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 h-11 px-5 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors duration-fast"
+            >
+              Get in touch
+              <ExternalLink className="w-4 h-4" />
             </a>
           </div>
-
         </div>
       </main>
       <Footer />
     </div>
   );
 };
+
+const SocialIcon = ({ href, Icon, label }: { href: string; Icon: typeof Github; label: string }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label={label}
+    className="inline-flex items-center justify-center w-9 h-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+  >
+    <Icon className="w-4 h-4" />
+  </a>
+);
 
 export default About;

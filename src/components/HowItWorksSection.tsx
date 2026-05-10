@@ -1,164 +1,108 @@
 import { useRef } from "react";
-import { Copy, Terminal, Server, Cpu } from "lucide-react";
+import { FileInput, Cpu, Database, FileCheck2 } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { cn } from "@/lib/utils";
 
-const pipelineSteps = [
+const steps = [
   {
-    id: "STEP_01",
-    command: "> node ingest.js --format fastq --quality=high",
-    title: "SEQ_INGESTION",
-    description: "Raw FASTA/Q payloads parsed. Quality filters apply Phred thresholds and trim adapter sequences in constant time.",
-    icon: Terminal,
-    output: "142,305 reads ingested [status: ok]",
+    n: "01",
+    title: "Ingest & QC",
+    icon: FileInput,
+    body: "Raw FASTA/FASTQ uploads are validated, hashed (SHA-256), and quality-filtered with fastp. Adapters trimmed; Phred thresholds enforced.",
+    out: "fastp · v0.24 — quality-controlled reads",
   },
   {
-    id: "STEP_02",
-    command: "> py inference.py --model dna-bert-v2 --parallel",
-    title: "AI_INFERENCE",
-    description: "Transformer arrays map taxonomic barcodes. High-dimensional embeddings cluster ecological features.",
+    n: "02",
+    title: "ASV inference",
     icon: Cpu,
-    output: "Batch processed: 0.18s/seq",
+    body: "Reads are dereplicated and denoised into amplicon sequence variants with vsearch (UNOISE3). Per-job parameter hashes are recorded.",
+    out: "vsearch · UNOISE3 — denoised ASV table",
   },
   {
-    id: "STEP_03",
-    command: "> curl -X POST https://api.ncbi /align",
-    title: "DB_ALIGNMENT",
-    description: "Asynchronous requests to globally distributed curated bio-databases establish definitive lineage constraints.",
-    icon: Server,
-    output: "NCBI connected. SILVA mapped.",
+    n: "03",
+    title: "Taxonomy & cross-reference",
+    icon: Database,
+    body: "ASVs are aligned against version-pinned SILVA 138.1 / MIDORI2 references. Each taxon is then cross-referenced against GBIF and the IUCN Red List.",
+    out: "SILVA · GBIF · IUCN — annotated taxonomy",
   },
   {
-    id: "STEP_04",
-    command: "> generate_report --format json,viz",
-    title: "TOPOLOGY_OUTPUT",
-    description: "A functional ecosystem matrix is compiled containing relative abundance and Shannon-Wiener computations.",
-    icon: Copy,
-    output: "relict_manifest.json created.",
-  }
+    n: "04",
+    title: "Signed provenance",
+    icon: FileCheck2,
+    body: "Inputs, tool versions, database versions, parameters, and outputs are bound into a signed JSON manifest — independently re-verifiable.",
+    out: "manifest.json — signed, hash-bound",
+  },
 ];
 
 export const HowItWorksSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start center", "end end"]
+    offset: ["start 0.6", "end 0.4"],
   });
+  const lineScale = useTransform(scrollYProgress, [0, 1], [0, 1]);
 
   return (
-    <section
-      ref={containerRef}
-      id="pipeline"
-      className="relative bg-transparent border-t border-white/5 py-24 sm:py-32"
-    >
-      <div className="container mx-auto px-4 md:px-8 relative z-10 w-full max-w-5xl">
-        <div className="mb-20">
-          <div className="flex items-center space-x-2 text-primary font-mono text-xs uppercase tracking-widest mb-4">
-            <span className="w-2 h-2 bg-primary"></span>
-            <span>Architecture // Pipeline Execution</span>
-          </div>
-          <h2 className="text-4xl sm:text-5xl font-heading font-black text-white uppercase tracking-tighter">
-            Data <span className="text-neon-cyan">Topology.</span>
+    <section ref={containerRef} className="relative py-24 md:py-32 border-t border-border">
+      <div className="container-page">
+        <div className="max-w-3xl mb-16 md:mb-24">
+          <p className="eyebrow mb-5">
+            <span className="eyebrow-dot" />
+            Pipeline
+          </p>
+          <h2 className="h-display text-display-lg text-balance">
+            From raw reads to verifiable conservation context — in four traceable stages.
           </h2>
         </div>
 
-        {/* Vertical Pipeline Graph */}
-        <div className="relative pl-8 sm:pl-16">
-          {/* Main descending pipeline trace line */}
-          <div className="absolute top-0 left-[15px] sm:left-[31px] w-[2px] h-full bg-white/10 z-0">
-            <motion.div
-              className="absolute top-0 left-0 w-full bg-primary"
-              style={{ scaleY: scrollYProgress, transformOrigin: "top" }}
-            />
-          </div>
+        <div className="relative pl-8 md:pl-12">
+          {/* Pipeline trace line */}
+          <div
+            className="absolute top-2 bottom-2 left-[11px] md:left-[15px] w-px bg-border"
+            aria-hidden
+          />
+          <motion.div
+            className="absolute top-2 left-[11px] md:left-[15px] w-px bg-foreground origin-top"
+            style={{ scaleY: lineScale, height: "calc(100% - 1rem)" }}
+            aria-hidden
+          />
 
-          <div className="space-y-24 sm:space-y-32">
-            {pipelineSteps.map((step, index) => {
-              // We reveal the nodes based on scroll depth
-              const isActive = useTransform(
-                scrollYProgress,
-                [0, Math.min(1, index * 0.25), Math.min(1, (index + 0.5) * 0.25)],
-                [0, 0, 1]
-              );
-
-              const yOffset = useTransform(
-                scrollYProgress,
-                [0, Math.min(1, index * 0.25), Math.min(1, (index + 0.5) * 0.25)],
-                [50, 50, 0]
-              );
-
-              return (
-                <div key={step.id} className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8">
-                  {/* The Node Connection Point */}
-                  <motion.div
-                    className="absolute -left-[30px] sm:-left-[46px] top-6 w-[30px] h-[30px] rounded-sm border-2 bg-background flex items-center justify-center z-20"
-                    style={{
-                      borderColor: useTransform(isActive, (v) => v > 0.5 ? "hsl(var(--primary))" : "rgba(255,255,255,0.2)"),
-                    }}
-                  >
-                    <motion.div
-                      className="w-[10px] h-[10px]"
-                      style={{
-                        backgroundColor: useTransform(isActive, (v) => v > 0.5 ? "hsl(var(--primary))" : "transparent"),
-                      }}
-                    />
-                  </motion.div>
-
-                  {/* Step ID / Execution Context */}
-                  <motion.div
-                    style={{ opacity: isActive, y: yOffset }}
-                    className="font-mono text-sm"
-                  >
-                    <div className="text-gray-500 mb-1">[{step.id}]</div>
-                    <div className="text-white font-bold mb-4">{step.title}</div>
-                    <div className="hidden md:flex p-3 border border-white/10 bg-white/5 items-start space-x-3 text-gray-400 hud-bracket">
-                      <step.icon className="w-5 h-5 text-secondary shrink-0" />
-                      <div className="text-xs leading-relaxed">{step.description}</div>
-                    </div>
-                  </motion.div>
-
-                  {/* Terminal Execution Window */}
-                  <motion.div
-                    style={{ opacity: isActive, y: yOffset }}
-                    className="w-full"
-                  >
-                    <div className="border border-white/20 bg-black text-xs font-mono w-full shadow-[0_0_15px_rgba(0,0,0,1)]">
-                      <div className="border-b border-white/20 bg-white/5 py-1 px-3 flex justify-between text-gray-600">
-                        <span>bash 80x24</span>
-                        <span>[x]</span>
-                      </div>
-                      <div className="p-4 sm:p-6 space-y-4">
-                        <div className="text-gray-400">
-                          <span className="text-secondary">{step.command.split(" ")[0]} </span>
-                          <span>{step.command.substring(step.command.indexOf(" ") + 1)}</span>
-                        </div>
-                        <motion.div
-                          className="pt-4 text-neon-green"
-                          initial={{ opacity: 0 }}
-                          whileInView={{ opacity: 1 }}
-                          viewport={{ once: false, margin: "-100px" }}
-                          transition={{ delay: 0.3 }}
-                        >
-                          {step.output}
-                        </motion.div>
-                        <motion.div
-                          className="w-2 h-4 bg-gray-500"
-                          animate={{ opacity: [1, 0, 1] }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Mobile description fallback */}
-                    <div className="md:hidden mt-4 text-xs font-mono text-gray-400 border-l border-primary/50 pl-3">
-                      {step.description}
-                    </div>
-                  </motion.div>
-
+          <div className="space-y-16 md:space-y-24">
+            {steps.map((s, i) => (
+              <motion.div
+                key={s.n}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.6, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                className="relative grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 md:gap-12"
+              >
+                {/* Node */}
+                <div
+                  className="absolute -left-8 md:-left-12 top-1.5 w-[22px] md:w-[30px] h-[22px] md:h-[30px] rounded-full bg-background border border-border flex items-center justify-center"
+                  aria-hidden
+                >
+                  <span className="w-2 h-2 rounded-full bg-foreground" />
                 </div>
-              );
-            })}
+
+                <div>
+                  <p className="font-mono text-xs text-muted-foreground mb-2">Step {s.n}</p>
+                  <h3 className="h-display text-2xl flex items-center gap-2.5">
+                    <s.icon className="w-5 h-5 text-primary" />
+                    {s.title}
+                  </h3>
+                </div>
+
+                <div>
+                  <p className="text-base text-foreground/80 leading-relaxed max-w-xl">
+                    {s.body}
+                  </p>
+                  <p className="mt-4 inline-flex items-center text-xs font-mono text-muted-foreground bg-muted px-2.5 py-1 rounded-[var(--radius-xs)] border border-border">
+                    <span className="w-1.5 h-1.5 rounded-full bg-success mr-2" />
+                    {s.out}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>

@@ -1,48 +1,39 @@
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
-export const ThemeToggle = () => {
-  const { theme, setTheme } = useTheme();
+export const ThemeToggle = ({ className }: { className?: string }) => {
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  // Avoid hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const cycle = () => {
+    if (!mounted) return;
+    const next = theme === "system" ? "light" : theme === "light" ? "dark" : "system";
+    setTheme(next);
+  };
 
-  if (!mounted) {
-    return (
-      <Button variant="ghost" size="sm" className="w-9 h-9 px-0">
-        <div className="h-4 w-4" />
-      </Button>
-    );
-  }
+  const Icon = !mounted
+    ? Sun
+    : theme === "system"
+    ? Monitor
+    : resolvedTheme === "dark"
+    ? Moon
+    : Sun;
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="w-9 h-9 px-0 hover-glow relative overflow-hidden"
+    <button
+      onClick={cycle}
+      aria-label="Toggle theme"
+      className={cn(
+        "inline-flex items-center justify-center w-9 h-9 rounded-md",
+        "text-muted-foreground hover:text-foreground hover:bg-muted",
+        "transition-colors duration-fast ease-out",
+        className,
+      )}
     >
-      <motion.div
-        key={theme}
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 20, opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="absolute inset-0 flex items-center justify-center"
-      >
-        {theme === "light" ? (
-          <Moon className="h-4 w-4" />
-        ) : (
-          <Sun className="h-4 w-4" />
-        )}
-      </motion.div>
-      <span className="sr-only">Toggle theme</span>
-    </Button>
+      <Icon className="w-4 h-4" />
+    </button>
   );
 };

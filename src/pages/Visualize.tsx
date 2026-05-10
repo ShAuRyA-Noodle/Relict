@@ -1,56 +1,77 @@
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
-import { BiodiversityCharts } from "@/components/BiodiversityCharts";
 import { Footer } from "@/components/Footer";
-import { BiodiversityMetrics } from "@/components/BiodiversityMetrics";
-import { Activity } from "lucide-react";
+import { ArrowUpRight, BarChart3, Activity } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Visualize = () => {
   return (
-    <div className="min-h-screen bg-transparent font-mono relative">
+    <div className="min-h-screen">
       <Header />
-      <main className="pt-32 pb-24 relative z-10">
-        <div className="container mx-auto px-4 py-8 md:px-8 max-w-6xl">
-          
-          <div className="mb-16">
-            <div className="flex items-center space-x-2 text-primary text-xs uppercase tracking-widest mb-4">
-              <span className="w-2 h-2 bg-primary animate-pulse"></span>
-              <span>Data Telemetry / Log Output</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-heading font-black text-white uppercase tracking-tighter mb-4 flex items-center">
-              Topology <span className="text-neon-cyan ml-3">Matrix.</span>
-              <Activity className="w-8 h-8 ml-4 text-primary" />
-            </h1>
-            <p className="text-sm text-gray-400 max-w-2xl border-l border-white/20 pl-4 py-1">
-              Real-time interactive taxonomy telemetry. Raw species identification metrics plotted against functional ecosystem indices.
+      <main className="pt-32 pb-24">
+        <div className="container-page max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-12"
+          >
+            <p className="eyebrow mb-5">
+              <span className="eyebrow-dot" />
+              Visualization
             </p>
+            <h1 className="h-display text-display-lg mb-5 text-balance">
+              Topology, diversity, and conservation — at a glance.
+            </h1>
+            <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+              Interactive ordinations and per-sample diversity metrics live alongside
+              the ASV table and IUCN status — all driven by the same provenance-bound
+              outputs your pipeline produced.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Card
+              icon={<BarChart3 className="w-5 h-5 text-primary" />}
+              title="Diversity & ordination"
+              body="Shannon, Simpson, Chao1, and Faith's PD; UMAP / PCoA ordinations on demand."
+            />
+            <Card
+              icon={<Activity className="w-5 h-5 text-primary" />}
+              title="Conservation status"
+              body="Per-taxon GBIF occurrence counts and IUCN Red List categories surfaced inline."
+            />
           </div>
 
-          <div className="border border-white/20 bg-black/60 backdrop-blur-md p-6 sm:p-12 mb-16 shadow-[0_0_20px_rgba(0,0,0,1)] hud-bracket relative">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-50" />
-            <div className="text-xs text-gray-500 mb-8 border-b border-white/10 pb-2 uppercase tracking-widest flex items-center justify-between">
-              <span>VISUALIZATION_ENGINE_V2</span>
-              <span>[ INTERACTIVE ]</span>
-            </div>
-            
-            {/* Wrapper div to force dark mode styles inside charts if needed */}
-            <div className="chart-container-hud">
-              <BiodiversityCharts />
-            </div>
+          <div className="mt-12 surface-elevated bg-gradient-hero p-10 md:p-14 text-center">
+            <h2 className="h-display text-2xl md:text-3xl mb-4 text-balance">
+              Charts come alive once you have a job.
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed">
+              Visualize is wired to a real pipeline result. Run a demo sample to see
+              every metric, table, and ordination populate from your data.
+            </p>
+            <Link
+              to="/demo"
+              className="inline-flex items-center gap-1.5 h-11 px-5 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors duration-fast"
+            >
+              Upload a sample
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
           </div>
-
-          <div className="border border-white/20 bg-black/60 backdrop-blur-md p-6 sm:p-12 shadow-[0_0_20px_rgba(0,0,0,1)] hud-bracket relative">
-             <div className="text-xs text-gray-500 mb-8 border-b border-white/10 pb-2 uppercase tracking-widest flex items-center justify-between">
-              <span>ECOLOGICAL_METRICS_READOUT</span>
-              <span>[ LIVE ]</span>
-            </div>
-            <BiodiversityMetrics />
-          </div>
-
         </div>
       </main>
       <Footer />
     </div>
   );
 };
+
+const Card = ({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) => (
+  <div className="surface-card p-6 md:p-7">
+    <div className="mb-4">{icon}</div>
+    <h3 className="h-display text-lg mb-2">{title}</h3>
+    <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
+  </div>
+);
 
 export default Visualize;

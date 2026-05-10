@@ -1,147 +1,91 @@
-import { useRef } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, Waves, Trees, Droplets, ArrowRight } from "lucide-react";
-import { motion, useInView } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { Waves, Trees, Droplets, ArrowUpRight } from "lucide-react";
+import { motion } from "framer-motion";
 
-const targets = [
+const cases = [
   {
-    id: "TRG_01",
-    title: "MARINE_PELAGIC",
+    title: "Marine pelagic",
     icon: Waves,
-    points: ["[X, Y, Z] DEPTH: -500M", "SALINITY_PROBE: ACTIVE"],
-    desc: "Assess ocean health indicators and track elusive chondrichthyes populations via dispersed genetic markers in 10L grab samples.",
-    color: "from-cyan-500/20 to-blue-500/5",
-    borderH: "border-cyan-500/50",
+    body: "Track ocean health indicators and elusive chondrichthyan populations from dispersed genetic markers in 1–10 L water grabs.",
+    facts: ["Depth ranges to 500 m", "Salinity-tolerant primers"],
   },
   {
-    id: "TRG_02",
-    title: "TERRESTRIAL_LENTIC",
+    title: "Terrestrial lentic",
     icon: Trees,
-    points: ["GRID_COORD: 45N 122W", "RIPARIAN_ZONE: TRUE"],
-    desc: "Identify entire mammalian presence matrices from isolated water holes. Tracks shedding from dermal layers and saliva.",
-    color: "from-green-500/20 to-emerald-500/5",
-    borderH: "border-green-500/50",
+    body: "Reconstruct mammalian presence matrices from waterholes, sampling shed cells from dermal layers, urine, and saliva.",
+    facts: ["Riparian-zone surveys", "Multi-day persistence"],
   },
   {
-    id: "TRG_03",
-    title: "LOTIC_SYSTEMS",
+    title: "Lotic systems",
     icon: Droplets,
-    points: ["FLOW_RATE: 12m/s", "TURBIDITY: HIGH"],
-    desc: "Longitudinal watershed biodiversity tracking. Reconstruct upstream macroinvertebrate and teleost communities.",
-    color: "from-teal-500/20 to-cyan-500/5",
-    borderH: "border-teal-500/50",
-  }
+    body: "Longitudinal watershed biodiversity tracking; reconstruct upstream macroinvertebrate and teleost communities from filtrate.",
+    facts: ["Flow-corrected sampling", "Turbidity-aware QC"],
+  },
 ];
 
 export const UseCasesSection = () => {
   return (
-    <section className="py-32 bg-transparent relative font-mono overflow-hidden">
-      <div className="absolute inset-0 z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
-      
-      {/* Background wireframe orb */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] border border-white/5 rounded-full z-0 pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] border border-white/10 rounded-full z-0 pointer-events-none flex items-center justify-center">
-        <div className="absolute w-full h-[1px] bg-white/5" />
-        <div className="absolute h-full w-[1px] bg-white/5" />
-      </div>
-
-      <div className="container mx-auto px-4 lg:px-8 relative z-10 max-w-6xl">
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-16"
-        >
-          <div className="flex items-center space-x-2 text-secondary text-xs uppercase tracking-widest mb-4">
-            <span className="w-2 h-2 bg-secondary animate-pulse"></span>
-            <span>Target Acquisition</span>
-          </div>
-          <h2 className="text-4xl md:text-5xl font-heading font-black text-white uppercase tracking-tighter w-full max-w-2xl">
-            Acquire biological telemetry across <br />
-            <span className="text-primary italic font-light drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">all primary biomes.</span>
+    <section className="relative py-24 md:py-32 border-t border-border">
+      <div className="container-page">
+        <div className="max-w-3xl mb-16 md:mb-20">
+          <p className="eyebrow mb-5">
+            <span className="eyebrow-dot" />
+            Field deployments
+          </p>
+          <h2 className="h-display text-display-lg text-balance">
+            One pipeline, three biomes. Same provenance guarantees.
           </h2>
-        </motion.div>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-24">
-          {targets.map((trg, i) => (
-            <motion.div
-              key={trg.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-              className={cn(
-                "group relative bg-black/40 border border-white/20 hover:bg-black/60 transition-all duration-300 p-6 flex flex-col justify-between hud-panel cursor-crosshair min-h-[400px]",
-                "hover:" + trg.borderH
-              )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
+          {cases.map((c, i) => (
+            <motion.article
+              key={c.title}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="surface-card p-6 md:p-7 flex flex-col gap-5 min-h-[280px]"
             >
-              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none", trg.color)} />
-              
-              {/* Corner brackets */}
-              <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-white/50 group-hover:border-primary transition-colors" />
-              <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-white/50 group-hover:border-primary transition-colors" />
-              <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-white/50 group-hover:border-primary transition-colors" />
-              <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-white/50 group-hover:border-primary transition-colors" />
-
-              <div className="relative z-10">
-                <div className="flex justify-between items-start mb-10">
-                  <div className="text-xs text-gray-500 font-bold">[{trg.id}]</div>
-                  <trg.icon className="w-6 h-6 text-gray-400 group-hover:text-primary transition-colors" />
-                </div>
-
-                <div className="mb-4">
-                  <h3 className="text-2xl font-bold text-white mb-2">{trg.title}</h3>
-                  <div className="space-y-1">
-                    {trg.points.map(p => (
-                      <div key={p} className="text-[10px] text-gray-500 flex items-center">
-                        <ChevronRight className="w-3 h-3 mr-1 text-secondary" /> {p}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative z-10 text-sm text-gray-400 font-light leading-relaxed group-hover:text-gray-300 transition-colors border-l border-white/10 pl-4 py-2">
-                {trg.desc}
-              </div>
-            </motion.div>
+              <c.icon className="w-5 h-5 text-primary" />
+              <h3 className="h-display text-xl">{c.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed flex-1">{c.body}</p>
+              <ul className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+                {c.facts.map((f) => (
+                  <li key={f} className="flex items-center gap-2">
+                    <span className="w-1 h-1 rounded-full bg-foreground/40" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </motion.article>
           ))}
         </div>
 
-        {/* Console Execution / CTA Box */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="border border-white/20 bg-black max-w-4xl mx-auto shadow-2xl relative"
+          transition={{ duration: 0.6 }}
+          className="mt-16 md:mt-24 surface-elevated bg-gradient-hero p-10 md:p-14 text-center"
         >
-          <div className="bg-white/5 border-b border-white/20 py-2 px-4 flex items-center justify-between text-xs text-gray-500">
-            <div>relict_sys@production:~</div>
-            <div className="flex space-x-2">
-              <div className="w-2 h-2 rounded-full border border-gray-500 relative"><span className="absolute inset-0 bg-gray-500"></span></div>
-              <div className="w-2 h-2 rounded-full border border-gray-500 relative"><span className="absolute inset-0 bg-gray-500"></span></div>
-              <div className="w-2 h-2 rounded-full border border-gray-500 relative"><span className="absolute inset-0 bg-gray-500"></span></div>
-            </div>
-          </div>
-          <div className="p-8 sm:p-12 text-center relative overflow-hidden">
-            <h3 className="text-3xl md:text-5xl font-heading font-bold text-white mb-6 uppercase tracking-tighter">
-              Execute <span className="text-neon-cyan">Analytics.</span>
-            </h3>
-            <p className="text-gray-400 mb-10 max-w-lg mx-auto text-sm">
-              Deploy the analysis algorithms on demo sequences to observe classification limits and topological output mappings.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Link 
-                to="/demo"
-                className="btn-cyber px-8 py-4 font-bold text-lg flex items-center justify-center tracking-widest"
-              >
-                ./RUN_DEMO
-                <ArrowRight className="w-5 h-5 ml-3" />
-              </Link>
-            </div>
-          </div>
+          <p className="eyebrow mb-5 justify-center">
+            <span className="eyebrow-dot" />
+            Try it now
+          </p>
+          <h3 className="h-display text-display-lg max-w-2xl mx-auto text-balance mb-5">
+            Upload a sample. Get an annotated, signed analysis in minutes.
+          </h3>
+          <p className="text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed">
+            FASTQ or FASTA, up to 500 MiB. Free, MIT-licensed. No vendor lock-in on outputs.
+          </p>
+          <Link
+            to="/demo"
+            className="inline-flex items-center gap-1.5 h-11 px-5 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors duration-fast"
+          >
+            Run the demo
+            <ArrowUpRight className="w-4 h-4" />
+          </Link>
         </motion.div>
       </div>
     </section>

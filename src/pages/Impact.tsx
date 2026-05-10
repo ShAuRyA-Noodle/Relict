@@ -1,98 +1,125 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Shield, Target, Users, Leaf, Globe, TrendingUp } from "lucide-react";
+import { Target, Shield, FileCheck2, Users, Leaf } from "lucide-react";
+import { motion } from "framer-motion";
 
-const impactAreas = [
-  { id: "IMP_01", title: "NON_INVASIVE_SAMPLING", desc: "Isolates DNA traces from abiotic matrices (water/soil). No direct organism disruption or capture required.", icon: Target },
-  { id: "IMP_02", title: "DB_CROSS_REFERENCING", desc: "Automated real-time pinging of GBIF occurrences and IUCN Red List. Immediate conservation flags.", icon: Shield },
-  { id: "IMP_03", title: "BLOCKCHAIN_PROVENANCE", desc: "All parameters, container versions, and sequence hashes encoded into immutable JSON manifests.", icon: TrendingUp },
+const pillars = [
+  {
+    icon: Target,
+    title: "Non-invasive sampling",
+    body: "DNA traces are isolated from water, soil, and sediment — no organism capture or disruption required. Surfaces rare, cryptic, and nocturnal taxa traditional surveys miss.",
+  },
+  {
+    icon: Shield,
+    title: "Conservation cross-referencing",
+    body: "Every detected taxon is cross-referenced against GBIF and the IUCN Red List, so users see conservation status alongside detections — not after the fact.",
+  },
+  {
+    icon: FileCheck2,
+    title: "Signed provenance",
+    body: "Inputs, tool versions, database versions, parameters, and outputs are bound into a signed JSON manifest. Any result can be independently re-verified.",
+  },
 ];
 
 const sdg = [
-  { id: "SDG_14", text: "LIFE_BELOW_WATER (14) - Marine resource tracking." },
-  { id: "SDG_15", text: "LIFE_ON_LAND (15) - Terrestrial ecosystem preservation." },
-  { id: "SDG_13", text: "CLIMATE_ACTION (13) - Baseline monitoring of shifts." },
+  { n: 14, t: "Life below water",   d: "Marine resource tracking and ocean-health baselines." },
+  { n: 15, t: "Life on land",       d: "Terrestrial ecosystem monitoring and preservation." },
+  { n: 13, t: "Climate action",     d: "Baseline biodiversity shifts as climate signal." },
 ];
 
 const Impact = () => {
   return (
-    <div className="min-h-screen bg-transparent font-mono relative">
+    <div className="min-h-screen">
       <Header />
-      <main className="pt-32 pb-24 relative z-10">
-        <div className="container mx-auto px-4 md:px-8 max-w-5xl">
-          
-          <div className="mb-16">
-            <div className="flex items-center space-x-2 text-primary text-xs uppercase tracking-widest mb-4">
-              <span className="w-2 h-2 bg-primary"></span>
-              <span>System Output Goals</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-heading font-black text-white uppercase tracking-tighter mb-4 flex items-center">
-              Environmental <span className="text-neon-cyan ml-3">Impact.</span>
-              <Globe className="w-8 h-8 ml-4 text-gray-500" />
-            </h1>
-            <p className="text-sm text-gray-400 max-w-2xl border-l border-white/20 pl-4 py-1">
-              Alignment with global sustainability frameworks. Precision monitoring translates directly into verifiable ecological protection.
+      <main className="pt-32 pb-24">
+        <div className="container-page max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-14 max-w-3xl"
+          >
+            <p className="eyebrow mb-5">
+              <span className="eyebrow-dot" />
+              Why this matters
             </p>
-          </div>
+            <h1 className="h-display text-display-lg mb-5 text-balance">
+              Precision biodiversity monitoring, in service of the planet.
+            </h1>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Relict was built so that researchers, conservation teams, and citizen
+              scientists could move from a water sample to a verifiable ecological
+              insight — without proprietary tooling, hidden parameters, or unprovenanced
+              numbers.
+            </p>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-            {impactAreas.map(item => (
-              <div key={item.id} className="border border-white/20 bg-black/60 backdrop-blur-md p-6 hud-panel space-y-4">
-                <div className="flex justify-between items-center text-xs text-secondary border-b border-white/10 pb-2">
-                  <span>[{item.id}]</span>
-                  <item.icon className="w-4 h-4" />
-                </div>
-                <div className="font-bold text-white uppercase tracking-wider">{item.title}</div>
-                <div className="text-sm text-gray-400 leading-relaxed font-light">{item.desc}</div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-16">
+            {pillars.map((p, i) => (
+              <motion.article
+                key={p.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ delay: i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="surface-card p-6 md:p-7"
+              >
+                <p.icon className="w-5 h-5 text-primary mb-4" />
+                <h3 className="h-display text-lg mb-2.5">{p.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{p.body}</p>
+              </motion.article>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-8 mb-16">
-            <div className="border border-white/20 bg-black/60 backdrop-blur-sm p-8 hud-bracket">
-              <div className="flex items-center space-x-2 mb-6 border-b border-white/10 pb-2 text-xs text-primary uppercase">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-5">
+            <div className="surface-card p-7 md:p-9">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
                 <Users className="w-4 h-4" />
-                <span>USER_BIFURCATION_TREE</span>
+                Built for two audiences
               </div>
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <h3 className="text-white font-bold mb-2 uppercase tracking-widest">GROUP A: RESEARCH_LABS</h3>
-                  <ul className="text-xs text-gray-400 space-y-2">
-                    <li>&gt; ONE-CMD REPRODUCIBLE PIPELINES</li>
-                    <li>&gt; SIGNED PROVENANCE MANIFESTOS</li>
-                    <li>&gt; QIIME2 / PHYLOSEQ EXPORTS</li>
+                  <h4 className="h-display text-base mb-3">Research labs</h4>
+                  <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
+                    <li>One-command reproducible pipelines</li>
+                    <li>Signed provenance for supplementary materials</li>
+                    <li>BIOM / QIIME 2 / phyloseq exports</li>
+                    <li>Benchmark reports against published studies</li>
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-white font-bold mb-2 uppercase tracking-widest">GROUP B: FIELD_SCIENTISTS</h3>
-                  <ul className="text-xs text-gray-400 space-y-2">
-                    <li>&gt; NO BIOINFORMATICS CLI REQ</li>
-                    <li>&gt; PLAIN_LANGUAGE RECONSTRUCTION</li>
-                    <li>&gt; GBIF OCCURRENCE FORWARDING</li>
+                  <h4 className="h-display text-base mb-3">Field & citizen scientists</h4>
+                  <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
+                    <li>Plain-language conservation reports</li>
+                    <li>IUCN status on every detected taxon</li>
+                    <li>One-click GBIF DNA-derived occurrence submission</li>
+                    <li>No bioinformatics CLI required</li>
                   </ul>
                 </div>
               </div>
             </div>
 
-            <div className="border border-white/20 bg-black/60 backdrop-blur-sm p-8 text-xs text-gray-500 font-mono flex flex-col justify-between">
-              <div>
-                <div className="text-primary mb-4">[ SUSTAINABILITY_INDEX ]</div>
-                <div className="space-y-2">
-                  {sdg.map(s => (
-                    <div key={s.id} className="border-l border-white/20 pl-2">
-                      <span className="text-secondary">{s.id}</span>
-                      <div className="mt-1">{s.text}</div>
+            <div className="surface-card p-7 md:p-9 flex flex-col">
+              <div className="text-sm text-muted-foreground mb-6">UN Sustainable Development</div>
+              <ul className="space-y-5">
+                {sdg.map((g) => (
+                  <li key={g.n} className="flex items-start gap-3">
+                    <span className="mt-0.5 inline-flex items-center justify-center w-9 h-9 rounded-md bg-primary/10 text-primary font-mono text-sm font-medium">
+                      {g.n}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{g.t}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{g.d}</p>
                     </div>
-                  ))}
-                </div>
-              </div>
-              <div className="mt-8 pt-4 border-t border-white/10 flex items-center space-x-2 text-green-500">
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-auto pt-6 mt-8 border-t border-border flex items-center gap-2 text-xs text-success">
                 <Leaf className="w-4 h-4" />
-                <span>SYSTEM_GREEN_COMPLIANT</span>
+                Open-source, MIT-licensed
               </div>
             </div>
           </div>
-          
         </div>
       </main>
       <Footer />

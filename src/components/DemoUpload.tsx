@@ -1,15 +1,16 @@
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
-import { Upload, FileText, AlertCircle, LogIn, UserPlus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Upload, FileText, AlertCircle, LogIn, UserPlus, ArrowUpRight, CheckCircle2, Loader2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import {
-  uploadSample,
-  getJob,
-  createJobWebSocket,
-} from "@/lib/api";
+import { uploadSample, getJob, createJobWebSocket } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export const DemoUpload = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -38,7 +39,7 @@ export const DemoUpload = () => {
       } else {
         await login(email, password);
       }
-      toast({ title: authMode === "signup" ? "Account created" : "Logged in" });
+      toast({ title: authMode === "signup" ? "Account created" : "Signed in" });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Auth failed";
       toast({ title: "Error", description: msg, variant: "destructive" });
@@ -47,6 +48,7 @@ export const DemoUpload = () => {
     }
   };
 
+  // Real-time job status — preserved exactly
   useEffect(() => {
     if (!jobId) return;
     const ws = createJobWebSocket(jobId);
@@ -71,7 +73,9 @@ export const DemoUpload = () => {
           setIsProcessing(false);
           setError(data.message || "Pipeline failed");
         }
-      } catch {}
+      } catch {
+        /* malformed WS frame — ignore, server will resend on next tick */
+      }
     };
 
     ws.onerror = () => {
@@ -88,7 +92,9 @@ export const DemoUpload = () => {
             }
             clearInterval(pollInterval);
           }
-        } catch {}
+        } catch {
+          /* transient poll failure — let next tick retry */
+        }
       }, 3000);
       return () => clearInterval(pollInterval);
     };
@@ -107,18 +113,18 @@ export const DemoUpload = () => {
       setError(null);
       setJobId(null);
       setJobStatus("");
-      setStageMessage("Uploading sequence array...");
+      setStageMessage("Uploading sequence…");
 
       try {
         const result = await uploadSample(file);
         const jid = result.sample.job_id;
         setJobId(jid);
         setUploadProgress(10);
-        setStageMessage("Byte-stream complete. Initializing analysis daemon...");
+        setStageMessage("Upload complete. Initializing pipeline…");
 
         toast({
-          title: "Ingestion OK",
-          description: `${file.name} (${(file.size / 1024).toFixed(1)} KB) mapped to memory.`,
+          title: "Upload received",
+          description: `${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
         });
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Upload failed";
@@ -139,165 +145,221 @@ export const DemoUpload = () => {
     disabled: isProcessing || !isAuthenticated,
   });
 
+  // ─── Unauthenticated: editorial sign-in card ──────────────────────────
   if (!isAuthenticated) {
     return (
-      <div className="p-8 border border-white/20 bg-black/80 max-w-lg shadow-[0_0_20px_rgba(0,240,255,0.1)] hud-bracket backdrop-blur-md">
-        <div className="text-secondary text-xs mb-6 pb-2 border-b border-white/10 uppercase tracking-widest flex items-center">
-          <LogIn className="w-3 h-3 mr-2" />
-          AUTHORIZATION REQUIRED
-        </div>
-        <p className="text-gray-400 text-xs mb-6">
-          Access to computing clusters requires clearance. Establish proxy connection by supplying credentials below.
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="surface-card p-7 md:p-8 max-w-md"
+      >
+        <p className="eyebrow mb-5">
+          <span className="eyebrow-dot" />
+          {authMode === "signup" ? "Create account" : "Sign in"}
         </p>
-        <div className="space-y-4 font-mono text-sm">
-          <input
-            type="email"
-            placeholder="[ ENTER EMAIL ID ]"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 bg-black border border-white/20 focus:border-primary text-primary focus:outline-none placeholder-gray-600 transition-colors"
-          />
-          <input
-            type="password"
-            placeholder="[ ENTER SECURITY HASH ]"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 bg-black border border-white/20 focus:border-primary text-primary focus:outline-none placeholder-gray-600 transition-colors"
-          />
-          <button 
-            onClick={handleAuth} 
-            disabled={authLoading} 
-            className="w-full btn-cyber py-3 flex items-center justify-center font-bold tracking-widest mt-2"
-          >
-            {authLoading ? "INITIALIZING..." : authMode === "signup" ? (
-              <><UserPlus className="w-4 h-4 mr-2" /> GENERATE ID</>
-            ) : (
-              <><LogIn className="w-4 h-4 mr-2" /> AUTHENTICATE</>
-            )}
-          </button>
-          <div className="mt-4 pt-4 border-t border-white/10 text-center text-xs text-gray-500 flex justify-center items-center space-x-2">
-            <span>{authMode === "signup" ? "HAVE KEYS?" : "NO AUTH ID?"}</span>
-            <button
-              onClick={() => setAuthMode(authMode === "signup" ? "login" : "signup")}
-              className="text-secondary hover:text-white transition-colors uppercase border-b border-secondary pb-0.5"
-            >
-              {authMode === "signup" ? "LOGIN" : "REQUEST ONE"}
-            </button>
+        <h2 className="h-display text-xl mb-2">
+          {authMode === "signup" ? "Get a workspace." : "Welcome back."}
+        </h2>
+        <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+          {authMode === "signup"
+            ? "Pipelines run under your account so you can revisit jobs, exports, and provenance manifests anytime."
+            : "Pick up where you left off. Job history and exports are tied to your account."}
+        </p>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Email</label>
+            <Input
+              type="email"
+              placeholder="you@lab.org"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
           </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Password</label>
+            <Input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={authMode === "signup" ? "new-password" : "current-password"}
+              onKeyDown={(e) => e.key === "Enter" && handleAuth()}
+            />
+          </div>
+          <Button
+            onClick={handleAuth}
+            disabled={authLoading || !email || !password}
+            className="w-full mt-1"
+            size="lg"
+          >
+            {authLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : authMode === "signup" ? (
+              <><UserPlus className="w-4 h-4 mr-1.5" /> Create account</>
+            ) : (
+              <><LogIn className="w-4 h-4 mr-1.5" /> Sign in</>
+            )}
+          </Button>
         </div>
-      </div>
+
+        <div className="mt-6 pt-5 border-t border-border text-center text-sm text-muted-foreground">
+          {authMode === "signup" ? "Already have an account?" : "New here?"}{" "}
+          <button
+            onClick={() => setAuthMode(authMode === "signup" ? "login" : "signup")}
+            className="text-foreground hover:underline underline-offset-4"
+          >
+            {authMode === "signup" ? "Sign in" : "Create one"}
+          </button>
+        </div>
+      </motion.div>
     );
   }
 
+  // ─── Authenticated: dropzone + progress ────────────────────────────────
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div className="flex items-center justify-between border border-white/10 p-3 bg-white/5 backdrop-blur-md">
-        <div className="flex items-center space-x-3 text-xs">
-          <div className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_5px_hsl(var(--primary))]" />
-          <p className="text-gray-400">
-            CONNECTION OK // <strong>{user?.email}</strong>
+    <div className="space-y-5">
+      {/* Connection bar */}
+      <div className="surface-card flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="relative flex w-2 h-2 shrink-0">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-60 animate-ping" />
+            <span className="relative inline-flex w-2 h-2 rounded-full bg-success" />
+          </span>
+          <p className="text-sm text-muted-foreground truncate">
+            Signed in as <span className="text-foreground font-medium">{user?.email}</span>
           </p>
         </div>
-        <button className="text-xs text-red-500 hover:text-red-400 border border-red-500/30 px-3 py-1 hover:bg-red-500/10 transition-colors uppercase" onClick={logout}>
-          DISCONNECT
+        <button
+          onClick={logout}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Sign out
         </button>
       </div>
 
+      {/* Dropzone */}
       <div
         {...getRootProps()}
         className={cn(
-          "p-12 sm:p-20 border border-dashed cursor-pointer transition-all duration-300 text-center bg-black/60 backdrop-blur-sm hud-bracket relative overflow-hidden",
-          isDragActive ? "border-primary bg-primary/10 shadow-[inset_0_0_50px_rgba(57,255,20,0.2)]" : "border-white/20 hover:border-secondary hover:shadow-[inset_0_0_30px_rgba(0,240,255,0.1)]",
-          isProcessing && "pointer-events-none opacity-50"
+          "relative rounded-[var(--radius-lg)] border-2 border-dashed bg-card",
+          "p-12 sm:p-16 text-center cursor-pointer transition-colors duration-base ease-out",
+          isDragActive
+            ? "border-primary bg-primary/5"
+            : "border-border hover:border-foreground/40 hover:bg-muted/40",
+          isProcessing && "pointer-events-none opacity-60",
         )}
       >
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none" />
         <input {...getInputProps()} />
-        
-        <div className="relative z-10 flex flex-col items-center">
-          <div className={cn(
-              "p-4 rounded-xl border mb-6 transition-all duration-300", 
-              isDragActive ? "border-primary text-primary bg-primary/20" : "border-white/10 text-gray-400 bg-white/5"
-            )}>
-            <Upload className="w-8 h-8" />
+        <motion.div
+          initial={{ scale: 1 }}
+          animate={{ scale: isDragActive ? 1.06 : 1 }}
+          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-col items-center"
+        >
+          <div
+            className={cn(
+              "w-12 h-12 rounded-full flex items-center justify-center mb-5 transition-colors",
+              isDragActive ? "bg-primary text-primary-foreground" : "bg-muted text-foreground/70",
+            )}
+          >
+            <Upload className="w-5 h-5" />
           </div>
-          
           {isDragActive ? (
-            <p className="text-xl font-bold text-primary tracking-widest uppercase">&gt;&gt;&gt; INJECT PAYLOAD &lt;&lt;&lt;</p>
+            <p className="font-display text-lg">Drop to upload</p>
           ) : (
             <>
-              <p className="text-lg font-bold text-white mb-2 uppercase tracking-wide">
-                MOUNT FASTA / FASTQ DIRECTORY
-              </p>
-              <p className="text-xs text-gray-500 tracking-widest uppercase">
-                Drag-and-drop or click to parse local file
+              <p className="font-display text-lg mb-1.5">Drop a FASTQ or FASTA sample</p>
+              <p className="text-sm text-muted-foreground">
+                or click to browse · up to 500 MiB
               </p>
             </>
           )}
-        </div>
+          <div className="mt-5 flex flex-wrap justify-center gap-1.5">
+            {[".fastq", ".fq", ".fasta", ".fa", ".fna", ".gz"].map((x) => (
+              <span key={x} className="mono-chip">{x}</span>
+            ))}
+          </div>
+        </motion.div>
       </div>
 
-      {(isProcessing || jobStatus) && (
-        <div className="border border-white/20 bg-black/80 p-6 space-y-6 hud-panel shadow-[0_0_20px_rgba(0,0,0,1)]">
-          {uploadedFile && (
-            <div className="flex flex-wrap items-center gap-3 border-b border-white/10 pb-4">
-              <FileText className="w-4 h-4 text-neon-cyan" />
-              <span className="font-mono text-sm text-white">{uploadedFile.name}</span>
-              <span className="text-xs text-gray-500 border border-white/10 px-2 py-0.5">
-                {(uploadedFile.size / 1024).toFixed(1)} KB
-              </span>
-              
-              <div className="ml-auto">
-                {jobStatus === "succeeded" && <span className="text-xs text-black font-bold bg-primary px-3 py-1 uppercase tracking-widest">COMPLETE</span>}
-                {jobStatus === "failed" && <span className="text-xs text-white bg-red-600 px-3 py-1 uppercase tracking-widest border border-red-500">FAILED</span>}
-                {isProcessing && <span className="text-xs text-secondary border border-secondary px-3 py-1 uppercase tracking-widest animate-pulse">PROCESSING</span>}
+      {/* Progress */}
+      <AnimatePresence>
+        {(isProcessing || jobStatus) && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            className="surface-card p-6 space-y-5"
+          >
+            {uploadedFile && (
+              <div className="flex flex-wrap items-center gap-3 pb-4 border-b border-border">
+                <FileText className="w-4 h-4 text-muted-foreground" />
+                <span className="font-medium text-sm truncate">{uploadedFile.name}</span>
+                <span className="mono-chip">{(uploadedFile.size / 1024).toFixed(1)} KB</span>
+                <div className="ml-auto">
+                  {jobStatus === "succeeded" && (
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-[var(--radius-xs)] bg-success/15 text-success border border-success/20">
+                      <CheckCircle2 className="w-3 h-3" /> Complete
+                    </span>
+                  )}
+                  {jobStatus === "failed" && (
+                    <span className="text-xs px-2 py-0.5 rounded-[var(--radius-xs)] bg-destructive/15 text-destructive border border-destructive/20">
+                      Failed
+                    </span>
+                  )}
+                  {isProcessing && (
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-[var(--radius-xs)] bg-amber-500/15 text-amber-500 border border-amber-500/20">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Processing
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                <span>{isProcessing ? "Pipeline" : "Status"}</span>
+                <span className="tabular-nums font-medium text-foreground">{uploadProgress}%</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <motion.div
+                  className="h-full bg-primary"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${uploadProgress}%` }}
+                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                />
               </div>
             </div>
-          )}
 
-          <div className="space-y-2">
-            <div className="flex justify-between text-[10px] text-gray-400 font-mono">
-              <span>{isProcessing ? "PIPELINE_EXECUTION" : "TASK_STATUS"}</span>
-              <span className="text-secondary">{uploadProgress}%</span>
-            </div>
-            {/* Terminal style progress bar */}
-            <div className="w-full h-2 bg-white/10 border border-white/20 p-0.5 box-content overflow-hidden">
-              <div 
-                className="h-full bg-secondary transition-all duration-300" 
-                style={{ width: `${uploadProgress}%` }} 
-              />
-            </div>
-          </div>
+            {stageMessage && (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <span className="text-primary mr-1.5">›</span>
+                {stageMessage}
+              </p>
+            )}
 
-          {stageMessage && (
-            <div className="p-3 bg-white/5 border-l-2 border-secondary font-mono text-xs text-gray-300">
-              <span className="text-secondary opacity-50 mr-2">&gt;</span> {stageMessage}
-              {isProcessing && <span className="ml-1 animate-pulse">_</span>}
-            </div>
-          )}
-
-          {error && (
-            <div className="p-3 bg-red-900/20 border border-red-500/50 flex items-start space-x-3 text-red-400 font-mono text-xs">
-              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <div>
-                <div className="font-bold mb-1">SYSTEM_ERR</div>
-                <div>{error}</div>
+            {error && (
+              <div className="flex items-start gap-3 p-3 rounded-[var(--radius-sm)] bg-destructive/10 border border-destructive/20">
+                <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-destructive mb-0.5">Pipeline error</p>
+                  <p className="text-muted-foreground">{error}</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {jobStatus === "succeeded" && jobId && (
-            <div className="pt-4 border-t border-white/10">
-              <button 
-                onClick={() => navigate(`/jobs/${jobId}`)} 
-                className="w-full btn-cyber py-4 font-bold tracking-widest flex items-center justify-center text-sm"
-              >
-                OPEN_TOPOLOGY_MATRIX
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+            {jobStatus === "succeeded" && jobId && (
+              <Button onClick={() => navigate(`/jobs/${jobId}`)} className="w-full" size="lg">
+                Open results <ArrowUpRight className="w-4 h-4 ml-1" />
+              </Button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

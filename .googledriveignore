@@ -1,0 +1,112 @@
+# Google Drive sync ignore — prevent bloat/conflicts
+# Mirrors .gitignore + heavy local artifacts not needed in cloud sync
+
+# Dependencies
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+
+# Python venvs / cache
+.venv/
+venv/
+env/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+.turbo/
+.vite/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.idea/
+.vscode/
+*.sublime-*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+
+# Env / secrets — NEVER sync
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+credentials.json
+secrets.json
+
+# Coverage / test artifacts
+coverage/
+.nyc_output/
+*.lcov
+
+# Large data / model files
+*.fastq
+*.fastq.gz
+*.fasta
+*.fa
+*.fa.gz
+*.bam
+*.sam
+*.vcf
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.parquet
+*.arrow
+*.npy
+*.npz
+*.onnx
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+backend/data/
+backend/uploads/
+backend/outputs/
+backend/cache/
+backend/references/raw/
+backend/scripts/downloads/
+
+# DB
+*.sqlite
+*.sqlite3
+*.db
+
+# Lock files (optional — keep if want sync; comment to include)
+# package-lock.json
+# pnpm-lock.yaml
+# yarn.lock
+
+# Misc temporary
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig

@@ -3,47 +3,29 @@ import { Badge } from "@/components/ui/badge";
 import { Leaf, Target, Shield, Globe, Users, TrendingUp } from "lucide-react";
 
 const sdgGoals = [
-  {
-    number: 14,
-    title: "Life Below Water",
-    description: "Conserve and sustainably use oceans, seas and marine resources",
-    icon: Globe,
-  },
-  {
-    number: 15,
-    title: "Life on Land", 
-    description: "Protect, restore and promote sustainable use of terrestrial ecosystems",
-    icon: Leaf,
-  },
-  {
-    number: 13,
-    title: "Climate Action",
-    description: "Take urgent action to combat climate change and its impacts",
-    icon: Shield,
-  },
+  { number: 14, title: "Life below water", description: "Conserve and sustainably use oceans, seas, and marine resources.", icon: Globe },
+  { number: 15, title: "Life on land",     description: "Protect, restore, and promote sustainable use of terrestrial ecosystems.", icon: Leaf },
+  { number: 13, title: "Climate action",   description: "Take urgent action to combat climate change and its impacts.", icon: Shield },
 ];
 
 const impactAreas = [
   {
-    title: "Biodiversity Monitoring",
-    description: "Non-invasive species detection from water, soil or sediment samples - no organism capture required. Surfaces rare, cryptic, and nocturnal taxa that traditional surveys routinely miss.",
+    title: "Biodiversity monitoring",
+    description: "Non-invasive species detection from water, soil, or sediment — no organism capture required. Surfaces rare, cryptic, and nocturnal taxa traditional surveys miss.",
     icon: Target,
-    metrics: "Non-invasive sampling",
-    color: "emerald",
+    metric: "Non-invasive sampling",
   },
   {
-    title: "Conservation Cross-Referencing",
-    description: "Every detected taxon is automatically cross-referenced against GBIF occurrences and the IUCN Red List so users see conservation status alongside detections, not after the fact.",
+    title: "Conservation cross-referencing",
+    description: "Every detected taxon is automatically cross-referenced against GBIF and the IUCN Red List, so users see conservation status alongside detections.",
     icon: Shield,
-    metrics: "GBIF + IUCN integrated",
-    color: "accent",
+    metric: "GBIF + IUCN integrated",
   },
   {
-    title: "Reproducible Research",
-    description: "Every analysis produces a signed provenance manifest - input hashes, tool versions, database versions, parameters, output hashes - so any result can be independently re-verified.",
+    title: "Reproducible research",
+    description: "Every analysis produces a signed provenance manifest — input hashes, tool versions, database versions, parameters, output hashes — independently re-verifiable.",
     icon: TrendingUp,
-    metrics: "Signed provenance",
-    color: "muted",
+    metric: "Signed provenance",
   },
 ];
 
@@ -57,47 +39,37 @@ const ethicsPoints = [
 
 export const ImpactSection = () => {
   return (
-    <div className="space-y-12">
-      {/* Impact Areas */}
+    <div className="space-y-16">
       <section>
-        <h2 className="text-3xl font-display font-bold mb-8 text-center">
-          Environmental Impact
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {impactAreas.map((area) => (
-            <Card key={area.title} className="p-6 glass hover-lift">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className={`p-2 rounded-lg bg-${area.color}/10`}>
-                  <area.icon className={`w-6 h-6 text-${area.color}`} />
+        <h2 className="font-display text-3xl mb-8 text-center">Environmental impact</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {impactAreas.map((a) => (
+            <Card key={a.title} className="p-6 md:p-7">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-md bg-primary/10">
+                  <a.icon className="w-5 h-5 text-primary" />
                 </div>
-                <h3 className="text-xl font-display font-semibold">{area.title}</h3>
+                <h3 className="font-display text-lg">{a.title}</h3>
               </div>
-              <p className="text-muted-foreground mb-4">{area.description}</p>
-              <Badge variant="secondary" className="text-xs">
-                {area.metrics}
-              </Badge>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{a.description}</p>
+              <Badge variant="secondary" className="text-xs">{a.metric}</Badge>
             </Card>
           ))}
         </div>
       </section>
 
-      {/* SDG Alignment */}
       <section>
-        <h2 className="text-3xl font-display font-bold mb-8 text-center">
-          Supporting Sustainable Development Goals
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {sdgGoals.map((goal) => (
-            <Card key={goal.number} className="p-6 glass hover-lift">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-emerald/10 rounded-lg flex items-center justify-center">
-                    <span className="text-lg font-bold text-emerald">{goal.number}</span>
-                  </div>
+        <h2 className="font-display text-3xl mb-8 text-center">Sustainable Development Goals</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {sdgGoals.map((g) => (
+            <Card key={g.number} className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-11 h-11 rounded-md bg-primary/10 flex items-center justify-center shrink-0 font-display font-semibold text-primary">
+                  {g.number}
                 </div>
                 <div>
-                  <h3 className="text-lg font-display font-semibold mb-2">{goal.title}</h3>
-                  <p className="text-sm text-muted-foreground">{goal.description}</p>
+                  <h3 className="font-display text-base mb-1.5">{g.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{g.description}</p>
                 </div>
               </div>
             </Card>
@@ -105,79 +77,47 @@ export const ImpactSection = () => {
         </div>
       </section>
 
-      {/* Who benefits */}
       <section>
-        <Card className="p-8 glass">
-          <div className="text-center mb-6">
-            <Users className="w-12 h-12 mx-auto text-accent mb-4" />
-            <h2 className="text-3xl font-display font-bold mb-4">
-              Who This Is For
-            </h2>
+        <Card className="p-8 md:p-10">
+          <div className="text-center mb-8">
+            <Users className="w-8 h-8 mx-auto text-primary mb-3" />
+            <h2 className="font-display text-3xl">Who this is for</h2>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div>
-              <h3 className="text-xl font-display font-semibold mb-4">Researchers & Labs</h3>
-              <ul className="space-y-3 text-muted-foreground">
-                <li className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-emerald rounded-full mt-2 flex-shrink-0"></div>
-                  <span>One-command reproducible pipelines (fastp → vsearch/DADA2 → SILVA/MIDORI2 → diversity metrics)</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-emerald rounded-full mt-2 flex-shrink-0"></div>
-                  <span>Signed provenance manifests suitable for supplementary materials</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-emerald rounded-full mt-2 flex-shrink-0"></div>
-                  <span>BIOM / QIIME2 / phyloseq-compatible exports</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-emerald rounded-full mt-2 flex-shrink-0"></div>
-                  <span>Benchmark reports against published studies</span>
-                </li>
+              <h3 className="font-display text-lg mb-4">Researchers & labs</h3>
+              <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
+                <li>One-command reproducible pipelines</li>
+                <li>Signed provenance for supplementary materials</li>
+                <li>BIOM / QIIME 2 / phyloseq exports</li>
+                <li>Benchmark reports against published studies</li>
               </ul>
             </div>
-
             <div>
-              <h3 className="text-xl font-display font-semibold mb-4">Conservationists & Citizen Scientists</h3>
-              <ul className="space-y-3 text-muted-foreground">
-                <li className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
-                  <span>Upload a water/soil sample, get a plain-language conservation report</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
-                  <span>IUCN Red List status and legal protection flags on every detected taxon</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
-                  <span>Optional one-click submission to GBIF as a DNA-derived occurrence record</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
-                  <span>No bioinformatics expertise required</span>
-                </li>
+              <h3 className="font-display text-lg mb-4">Conservationists & citizen scientists</h3>
+              <ul className="space-y-2.5 text-sm text-muted-foreground leading-relaxed">
+                <li>Plain-language conservation reports</li>
+                <li>IUCN Red List status on every detected taxon</li>
+                <li>One-click GBIF DNA-derived occurrence submission</li>
+                <li>No bioinformatics expertise required</li>
               </ul>
             </div>
           </div>
         </Card>
       </section>
 
-      {/* Ethics & Responsibility */}
       <section>
-        <Card className="p-8 bg-gradient-glass">
-          <h2 className="text-3xl font-display font-bold mb-6 text-center">
-            Ethical Considerations
-          </h2>
+        <Card className="p-8 md:p-10 bg-gradient-glass">
+          <h2 className="font-display text-3xl mb-6 text-center">Ethical considerations</h2>
           <div className="max-w-3xl mx-auto">
-            <p className="text-lg text-muted-foreground mb-6 text-center">
-              Our commitment to responsible research and ethical AI development
+            <p className="text-base text-muted-foreground mb-6 text-center leading-relaxed">
+              A commitment to responsible research and ethical AI development.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {ethicsPoints.map((point, index) => (
-                <div key={index} className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-emerald rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-sm">{point}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {ethicsPoints.map((p, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                  <span className="text-sm">{p}</span>
                 </div>
               ))}
             </div>
@@ -185,20 +125,16 @@ export const ImpactSection = () => {
         </Card>
       </section>
 
-      {/* Call to Action */}
       <section className="text-center">
-        <Card className="p-8 bg-gradient-hero text-white">
-          <h2 className="text-3xl font-display font-bold mb-4">
-            Open-Source. Reproducible. Built for the Real World.
+        <Card className="p-8 md:p-12 bg-gradient-hero">
+          <h2 className="font-display text-3xl mb-4 text-balance">
+            Open-source. Reproducible. Built for the real world.
           </h2>
-          <p className="text-lg opacity-90 mb-6 max-w-2xl mx-auto">
-            No mock data. No fake numbers. Every pipeline stage is real,
-            every reference database is version-pinned, and every result
-            ships with a provenance manifest you can verify yourself.
+          <p className="text-base text-muted-foreground mb-4 max-w-2xl mx-auto leading-relaxed">
+            No mock data. Every pipeline stage is real. Every reference database is
+            version-pinned. Every result ships with a provenance manifest you can verify.
           </p>
-          <div className="text-sm opacity-75">
-            <p>MIT-licensed • Contributions welcome</p>
-          </div>
+          <p className="text-sm text-muted-foreground">MIT-licensed · Contributions welcome</p>
         </Card>
       </section>
     </div>

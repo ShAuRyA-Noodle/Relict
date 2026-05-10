@@ -1,31 +1,36 @@
 import { Header } from "@/components/Header";
 import { DemoUpload } from "@/components/DemoUpload";
 import { Footer } from "@/components/Footer";
-import { TerminalSquare } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Demo = () => {
   return (
-    <div className="min-h-screen bg-transparent font-mono relative">
+    <div className="min-h-screen">
       <Header />
-      <main className="pt-32 pb-24 relative z-10">
-        <div className="container mx-auto px-4 md:px-8 max-w-5xl">
-          <div className="mb-12">
-            <div className="flex items-center space-x-2 text-secondary text-xs uppercase tracking-widest mb-4">
-              <span className="w-2 h-2 bg-secondary animate-pulse"></span>
-              <span>Sequence Ingestion</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-heading font-black text-white uppercase tracking-tighter mb-4 flex items-center">
-              Execute <span className="text-neon-cyan ml-3">Pipeline.</span>
-              <TerminalSquare className="w-8 h-8 ml-4 text-gray-600" />
-            </h1>
-            <p className="text-sm text-gray-400 max-w-2xl border-l border-white/20 pl-4 py-1">
-              Upload raw environmental FASTA or FASTQ payloads. Sys daemon will parse reads through the BERT transformer array and output an interactive topology matrix.
+      <main className="pt-32 pb-24">
+        <div className="container-page max-w-3xl">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-10"
+          >
+            <p className="eyebrow mb-5">
+              <span className="eyebrow-dot" />
+              Sequence ingestion
             </p>
-          </div>
-          
-          <div className="w-full">
-            <DemoUpload />
-          </div>
+            <h1 className="h-display text-display-lg mb-5 text-balance">
+              Run the pipeline.
+            </h1>
+            <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+              Upload a FASTA or FASTQ sample (up to 500 MiB). Reads are
+              quality-controlled, denoised into ASVs, taxonomically assigned, and
+              cross-referenced against GBIF and the IUCN Red List — with a signed
+              provenance manifest you can verify yourself.
+            </p>
+          </motion.div>
+
+          <DemoUpload />
         </div>
       </main>
       <Footer />

@@ -1,119 +1,105 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, TerminalSquare, ChevronRight } from "lucide-react";
+import { ArrowUpRight, FileText } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
-const DNA_BASES = ["A", "C", "G", "T"];
-
 export const HeroSection = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
-    target: containerRef,
+    target: ref,
     offset: ["start start", "end start"],
   });
 
-  const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-  const mainOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-
-  const [sequenceOffset, setSequenceOffset] = useState(0);
-
-  useEffect(() => {
-    let animationFrameId: number;
-    let lastTime = performance.now();
-
-    const animateSequence = (currentTime: number) => {
-      if (currentTime - lastTime > 150) { // Update every 150ms for that choppy terminal feel
-        setSequenceOffset(prev => (prev + 1) % 100);
-        lastTime = currentTime;
-      }
-      animationFrameId = requestAnimationFrame(animateSequence);
-    };
-
-    animationFrameId = requestAnimationFrame(animateSequence);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, []);
+  const titleY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
   return (
-    <section ref={containerRef} className="relative min-h-screen flex items-center justify-center overflow-hidden bg-transparent pt-20 scanline">
-
-      {/* HUD Crosshairs */}
-      <div className="absolute top-24 left-8 w-4 h-4 border-t-2 border-l-2 border-secondary z-0 opacity-50"></div>
-      <div className="absolute top-24 right-8 w-4 h-4 border-t-2 border-r-2 border-secondary z-0 opacity-50"></div>
-      <div className="absolute bottom-8 left-8 w-4 h-4 border-b-2 border-l-2 border-secondary z-0 opacity-50"></div>
-      <div className="absolute bottom-8 right-8 w-4 h-4 border-b-2 border-r-2 border-secondary z-0 opacity-50"></div>
-
-      {/* Streaming DNA Background */}
-      <motion.div
-        className="absolute inset-0 z-0 pointer-events-none opacity-10 font-mono text-[10px] sm:text-xs leading-none overflow-hidden text-primary select-none whitespace-pre-wrap break-all px-8 pb-8 pt-32 text-justify"
-        style={{ y: backgroundY }}
-      >
-        {Array.from({ length: 1500 }).map((_, i) => DNA_BASES[(i + sequenceOffset) % 4]).join('')}
-      </motion.div>
+    <section
+      ref={ref}
+      className="relative min-h-[88vh] flex items-center pt-32 pb-24 overflow-hidden"
+    >
+      {/* Soft hero gradient backdrop, very subtle */}
+      <div className="absolute inset-0 bg-gradient-hero pointer-events-none" aria-hidden />
 
       <motion.div
-        className="container mx-auto px-4 sm:px-8 relative z-10 w-full"
-        style={{ opacity: mainOpacity }}
+        style={{ y: titleY, opacity: titleOpacity }}
+        className="container-page relative z-10"
       >
-        <div className="max-w-4xl border border-white/10 bg-black/60 backdrop-blur-sm p-1">
-          {/* Terminal Window Header */}
-          <div className="border-b border-white/10 bg-white/5 p-2 flex items-center justify-between">
-            <div className="flex space-x-2 px-2">
-              <div className="w-3 h-3 bg-red-500/50"></div>
-              <div className="w-3 h-3 bg-yellow-500/50"></div>
-              <div className="w-3 h-3 bg-green-500/50"></div>
-            </div>
-            <div className="text-[10px] font-mono text-gray-500">bin/sh - execution_pipeline.sh</div>
-            <div className="w-4 h-4 text-gray-500"><TerminalSquare className="w-4 h-4" /></div>
-          </div>
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="eyebrow mb-8"
+        >
+          <span className="eyebrow-dot" />
+          Environmental DNA · Open source · v0.1
+        </motion.p>
 
-          <div className="p-8 sm:p-12 border-b border-white/5 relative">
-            {/* Blinking Cursor Box Logo */}
-            <div className="mb-8 flex items-center space-x-2">
-              <span className="text-secondary font-mono text-sm">&gt; SYSTEM_INITIALIZED</span>
-              <motion.div
-                className="w-2 h-4 bg-secondary"
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              />
-            </div>
+        <motion.h1
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="h-display max-w-5xl text-display-2xl text-balance"
+        >
+          Read the <em className="italic font-light text-primary">biosphere&apos;s</em> faintest
+          signals. Reproducibly.
+        </motion.h1>
 
-            <motion.h1
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="text-5xl sm:text-6xl md:text-7xl font-heading font-black text-white uppercase tracking-tighter leading-[0.9] mb-6"
-            >
-              Parse the <br />
-              <span className="text-neon-cyan">Biosphere.</span>
-            </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-7 max-w-2xl text-lg md:text-xl text-muted-foreground leading-relaxed text-pretty"
+        >
+          Relict turns raw FASTQ from water, soil, and sediment into ASV inferences,
+          conservation cross-references, and signed provenance manifests — using real,
+          version-pinned bioinformatics tools, not black-box models.
+        </motion.p>
 
-            <p className="font-mono text-gray-400 max-w-xl text-sm sm:text-base leading-relaxed mb-10">
-              <span className="text-primary">RUNNING:</span> Amplicon sequence variant inference via fastp + vsearch UNOISE3 against SILVA 138.1 and MIDORI2 reference databases. Real taxonomy. Real conservation status. Signed provenance.
-            </p>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-10 flex flex-wrap items-center gap-3"
+        >
+          <Link
+            to="/demo"
+            className="inline-flex items-center gap-1.5 h-11 px-5 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors duration-fast"
+          >
+            Run the pipeline
+            <ArrowUpRight className="w-4 h-4" />
+          </Link>
+          <a
+            href="/relict_paper.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 h-11 px-5 rounded-md border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors duration-fast"
+          >
+            <FileText className="w-4 h-4" />
+            Read the paper
+          </a>
+        </motion.div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/demo" className="btn-cyber px-8 py-4 flex items-center justify-center font-bold">
-                <ChevronRight className="w-4 h-4 mr-2" />
-                EXECUTE // PIPELINE
-              </Link>
-              <a href="/relict_paper.pdf" target="_blank" rel="noopener noreferrer" className="border border-white/20 text-gray-400 hover:text-white hover:bg-white/10 px-8 py-4 flex items-center justify-center font-mono text-sm transition-colors uppercase">
-                VIEW_PAPER
-              </a>
-            </div>
-          </div>
-
-          {/* Readout Footer */}
-          <div className="bg-black/80 p-4 font-mono text-xs flex flex-col sm:flex-row justify-between text-gray-500 border-t border-white/10">
-            <div className="flex space-x-8">
-              <span><span className="text-primary">PIPELINE:</span> fastp + vsearch + scikit-bio</span>
-              <span><span className="text-primary">REF_DB:</span> SILVA 138.1 + MIDORI2 GB269</span>
-            </div>
-            <div className="mt-2 sm:mt-0">
-              [ OPEN SOURCE // MIT ]
-            </div>
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-16 flex flex-wrap items-center gap-x-8 gap-y-3 text-xs text-muted-foreground"
+        >
+          <Stat label="Pipeline" value="fastp · vsearch · scikit-bio" />
+          <span className="hidden sm:inline-block w-px h-4 bg-border" />
+          <Stat label="Reference" value="SILVA 138.1 · MIDORI2" />
+          <span className="hidden sm:inline-block w-px h-4 bg-border" />
+          <Stat label="License" value="MIT" />
+        </motion.div>
       </motion.div>
     </section>
   );
 };
+
+const Stat = ({ label, value }: { label: string; value: string }) => (
+  <span className="inline-flex items-baseline gap-2">
+    <span className="uppercase tracking-[0.16em] text-[10px]">{label}</span>
+    <span className="font-mono text-[11px] text-foreground/80">{value}</span>
+  </span>
+);
