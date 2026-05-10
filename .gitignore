@@ -156,6 +156,12 @@ backend/outputs/*.biom
 # Keep small fixture data (< 5 MB real truncated subsets) if we explicitly add them
 !backend/tests/fixtures/**
 
+# Local research data dumps (raw FASTQ + reference DBs + training corpora).
+# Never commit — too large and not source.
+008/
+00[0-9]/
+data_dumps/
+
 # ─── Infrastructure & Docker ────────────────────────────────────────────
 # Local volumes from docker-compose
 minio_data/
