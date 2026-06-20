@@ -35,10 +35,29 @@ class SampleTooLarge(SampleError):
     pass
 
 
+class UnsafeSampleFilename(SampleError):
+    pass
+
+
 # ─── Validation ─────────────────────────────────────────────────────────
 
 
 def _check_filename(filename: str) -> None:
+    # Reject path traversal and absolute paths before the raw filename is
+    # ever persisted. The S3 key is sanitized separately, but the raw value
+    # is stored on the Sample row and later joined onto the worker workspace
+    # (``workspace / sample.filename``); a value like ``../../etc/x.fastq``
+    # or ``/abs/x.fastq`` would otherwise escape that directory.
+    if (
+        "/" in filename
+        or "\\" in filename
+        or "\x00" in filename
+        or ".." in filename
+        or filename.startswith(".")
+    ):
+        msg = "Filename must be a plain name without path separators"
+        raise UnsafeSampleFilename(msg)
+
     settings = get_settings()
     lower = filename.lower()
     if not any(lower.endswith(suffix) for suffix in settings.ALLOWED_UPLOAD_SUFFIXES):

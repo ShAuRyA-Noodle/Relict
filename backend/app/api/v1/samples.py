@@ -39,6 +39,11 @@ async def upload_sample(
             stream=file.file,
             content_type=file.content_type or "application/octet-stream",
         )
+    except samples_service.UnsafeSampleFilename as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
     except samples_service.UnsupportedSampleFormat as exc:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
