@@ -7,13 +7,13 @@ abstract: >
   (fastp → vsearch/DADA2 → SILVA/MIDORI2/MitoFish → scikit-bio), automated
   conservation-status cross-referencing (GBIF + IUCN Red List), signed
   reproducibility manifests, and citizen-science submission of
-  DNA-derived occurrences to GBIF — all behind a single web interface.
+  DNA-derived occurrences to GBIF, all behind a single web interface.
 authors:
   - family-names: "Punj"
     given-names: "Shaurya"
     orcid: "https://orcid.org/0009-0000-7351-0237"
-repository-code: "https://github.com/ShAuRyA-Noodle/Bad-Omens"
-url: "https://github.com/ShAuRyA-Noodle/Bad-Omens"
+repository-code: "https://github.com/ShAuRyA-Noodle/Relict"
+url: "https://github.com/ShAuRyA-Noodle/Relict"
 license: MIT
 version: "0.1.0-dev"
 date-released: 2026-04-12
@@ -35,4 +35,4 @@ preferred-citation:
     - family-names: "Punj"
       given-names: "Shaurya"
   year: 2026
-  url: "https://github.com/ShAuRyA-Noodle/Bad-Omens"
+  url: "https://github.com/ShAuRyA-Noodle/Relict"

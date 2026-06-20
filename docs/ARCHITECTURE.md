@@ -228,7 +228,7 @@ produces a structured error visible in the UI and in the logs.
 ```bash
 # One-time
 git clone <repo>
-cd Bad-Omens
+cd Relict
 cp backend/.env.example backend/.env
 make download-dbs     # Phase 2+
 

@@ -1,8 +1,8 @@
 # Relict
 
-*/ˈrelɪkt/ — a trace of something no longer present.*
+*/ˈrelɪkt/: a trace of something no longer present.*
 
-> **Reproducible environmental DNA analysis with conservation-status cross-referencing and signed provenance — open source, no mock data, no fabricated metrics.**
+> **Reproducible environmental DNA analysis with conservation-status cross-referencing and signed provenance. Open source, no mock data, no fabricated metrics.**
 
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -17,12 +17,12 @@
 
 **Relict** is an open-source, full-stack platform that takes raw environmental DNA (eDNA) sequencing reads and produces:
 
-- **Real ASVs** — amplicon sequence variants inferred by fastp + vsearch UNOISE3
-- **Real taxonomy** — assigned against SILVA 138.1 (436K sequences) and MIDORI2 GenBank 269 (1.8M sequences)
-- **Real conservation status** — every detected species cross-referenced against GBIF (occurrence data) and the IUCN Red List (EN/VU/CR/LC categories)
-- **Real diversity metrics** — Shannon, Simpson, Chao1, richness, evenness computed by scikit-bio
-- **Signed provenance manifests** — input hashes, tool versions, DB versions, output hashes, SHA256 signature
-- **GBIF-ready exports** — Darwin Core Archive, CSV, BIOM 2.1.0 format
+- **Real ASVs**: amplicon sequence variants inferred by fastp + vsearch UNOISE3
+- **Real taxonomy**: assigned against SILVA 138.1 (436K sequences) and MIDORI2 GenBank 269 (1.8M sequences)
+- **Real conservation status**: every detected species cross-referenced against GBIF (occurrence data) and the IUCN Red List (EN/VU/CR/LC categories)
+- **Real diversity metrics**: Shannon, Simpson, Chao1, richness, evenness computed by scikit-bio
+- **Signed provenance manifests**: input hashes, tool versions, DB versions, output hashes, SHA256 signature
+- **GBIF-ready exports**: Darwin Core Archive, CSV, BIOM 2.1.0 format
 
 Six amplicon markers supported: 16S V4, 12S MiFish, COI Leray, 18S V9, rbcL, ITS2.
 
@@ -39,8 +39,8 @@ Six amplicon markers supported: 16S V4, 12S MiFish, COI Leray, 18S V9, rbcL, ITS
 
 ### 1. Clone and set up
 ```bash
-git clone https://github.com/ShAuRyA-Noodle/Bad-Omens.git
-cd Bad-Omens
+git clone https://github.com/ShAuRyA-Noodle/Relict.git
+cd Relict
 npm install
 ```
 
@@ -48,7 +48,7 @@ npm install
 ```bash
 cd backend
 cp .env.example .env
-# Edit .env — fill in POSTGRES_PASSWORD, MINIO_SECRET_KEY, JWT_SECRET
+# Edit .env to fill in POSTGRES_PASSWORD, MINIO_SECRET_KEY, JWT_SECRET
 ```
 
 ### 3. Download reference databases
@@ -80,28 +80,28 @@ cd .. && npm run dev
 FASTQ upload
    │
    ▼
-[1] QC & trimming        — fastp 0.24.0
+[1] QC & trimming        :  fastp 0.24.0
    │
    ▼
-[2] Dereplication         — vsearch 2.28.1
+[2] Dereplication         :  vsearch 2.28.1
    │
    ▼
-[3] ASV inference         — vsearch UNOISE3
+[3] ASV inference         :  vsearch UNOISE3
    │
    ▼
-[4] Taxonomy assignment   — vsearch vs SILVA 138.1 / MIDORI2 GB269
+[4] Taxonomy assignment   :  vsearch vs SILVA 138.1 / MIDORI2 GB269
    │
    ▼
-[5] Conservation          — GBIF Species API + IUCN Red List (via GBIF)
+[5] Conservation          :  GBIF Species API + IUCN Red List (via GBIF)
    │
    ▼
-[6] Diversity metrics     — scikit-bio (Shannon, Simpson, Chao1, evenness)
+[6] Diversity metrics     :  scikit-bio (Shannon, Simpson, Chao1, evenness)
    │
    ▼
-[7] Ordination            — UMAP + HDBSCAN
+[7] Ordination            :  UMAP + HDBSCAN
    │
    ▼
-[8] Provenance manifest   — SHA256 signature, all tool versions recorded
+[8] Provenance manifest   :  SHA256 signature, all tool versions recorded
    │
    ▼
 Interactive dashboard + DwC-A / CSV / BIOM exports
@@ -159,13 +159,13 @@ The [`render.yaml`](./render.yaml) blueprint provisions four services on Render 
 1. Push the repo to GitHub.
 2. In Render: **New → Blueprint → Connect repository → Apply**.
 3. Object storage (not provisioned by the blueprint): create a bucket on **Cloudflare R2**, **AWS S3**, or **Backblaze B2**, then set on **both** `relict-api` and `relict-worker`:
-   - `MINIO_ENDPOINT` — e.g. `s3.amazonaws.com` or `<accountid>.r2.cloudflarestorage.com`
+   - `MINIO_ENDPOINT`, e.g. `s3.amazonaws.com` or `<accountid>.r2.cloudflarestorage.com`
    - `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`
    - `MINIO_BUCKET` (default `relict`)
    - `MINIO_SECURE=true`
 4. Set `CORS_ORIGINS` on `relict-api` to the Vercel URL, comma-separated if multiple (e.g. `https://relict.vercel.app,https://relict-git-main.vercel.app`).
 5. Populate secrets on both services (blueprint uses `sync: false` so nothing real is committed): `IUCN_REDLIST_TOKEN`, `GBIF_USERNAME`, `GBIF_PASSWORD`, `GBIF_EMAIL`, `NCBI_API_KEY`, `NCBI_EMAIL`.
-6. First-time setup — download reference databases onto the worker's persistent disk:
+6. First-time setup: download reference databases onto the worker's persistent disk:
    ```bash
    render ssh relict-worker
    bash scripts/download_references.sh
@@ -174,7 +174,7 @@ The [`render.yaml`](./render.yaml) blueprint provisions four services on Render 
 
 ### Why object storage isn't provisioned
 
-Render has no managed S3-compatible service, and the worker's disk is attached to a single instance — it can't back uploads from the API. The client in [`backend/app/services/storage.py`](./backend/app/services/storage.py) talks the S3 protocol via the MinIO Python SDK, so Cloudflare R2, AWS S3, and Backblaze B2 all work without code changes.
+Render has no managed S3-compatible service, and the worker's disk is attached to a single instance, so it can't back uploads from the API. The client in [`backend/app/services/storage.py`](./backend/app/services/storage.py) talks the S3 protocol via the MinIO Python SDK, so Cloudflare R2, AWS S3, and Backblaze B2 all work without code changes.
 
 ### Deployment readiness checklist
 
@@ -184,7 +184,7 @@ Render has no managed S3-compatible service, and the worker's disk is attached t
 - [x] Argon2id password hashing + JWT refresh tokens
 - [x] Structured logging (`structlog`) with request IDs
 - [x] Frontend + backend on separate origins via `VITE_API_BASE_URL`
-- [ ] Rate limiting — not yet implemented; put Cloudflare or Render's built-in rate-limiter in front in the meantime
+- [ ] Rate limiting: not yet implemented; put Cloudflare or Render's built-in rate-limiter in front in the meantime
 
 ---
 
@@ -203,7 +203,7 @@ Render has no managed S3-compatible service, and the worker's disk is attached t
 ## Project Structure
 
 ```
-Bad-Omens/
+Relict/
 ├── src/                    # React frontend
 │   ├── components/         # UI components (all wired to real API)
 │   ├── pages/              # Routes: Index, Demo, JobResults, Profile, etc.
@@ -243,7 +243,7 @@ A complete research paper targeting **Methods in Ecology and Evolution** (APPLIC
   author  = {Punj, Shaurya},
   title   = {Relict: A Reproducible Environmental DNA Analysis Platform},
   year    = {2026},
-  url     = {https://github.com/ShAuRyA-Noodle/Bad-Omens},
+  url     = {https://github.com/ShAuRyA-Noodle/Relict},
   license = {MIT}
 }
 ```
@@ -252,6 +252,6 @@ A complete research paper targeting **Methods in Ecology and Evolution** (APPLIC
 
 ## Author
 
-**Shaurya Punj** — [ORCID: 0009-0000-7351-0237](https://orcid.org/0009-0000-7351-0237)
+**Shaurya Punj** | [ORCID: 0009-0000-7351-0237](https://orcid.org/0009-0000-7351-0237)
 
 Independent open-source project. MIT license.

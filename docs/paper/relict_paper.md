@@ -18,7 +18,7 @@ ORCID: 0009-0000-7351-0237
 
 3. We validated Relict against a synthetic known-composition dataset (5 bacterial species at equal abundance) and a real published SRA dataset (ERR2283086, 45,204 Illumina MiSeq reads). On the synthetic dataset, all 10 benchmark checks passed with mathematically exact results (Shannon = ln(5) = 1.6094, Simpson = 0.8, evenness = 1.0). On the SRA dataset, Relict detected 51 ASVs across three phyla (Proteobacteria, Firmicutes, Actinobacteriota), assigned taxonomy to 100% of ASVs at 100% SILVA identity, and cross-referenced all detected taxa against GBIF in a total pipeline runtime of 3.6 minutes.
 
-4. Relict addresses three gaps in the current eDNA tooling landscape that no single existing platform covers simultaneously: conservation-status integration, reproducibility guarantees, and citizen-science data publication. The platform is freely available under the MIT licence at https://github.com/ShAuRyA-Noodle/Bad-Omens.
+4. Relict addresses three gaps in the current eDNA tooling landscape that no single existing platform covers simultaneously: conservation-status integration, reproducibility guarantees, and citizen-science data publication. The platform is freely available under the MIT licence at https://github.com/ShAuRyA-Noodle/Relict.
 
 **KEYWORDS:** environmental DNA, eDNA, metabarcoding, bioinformatics pipeline, conservation, reproducible research, GBIF, IUCN Red List, citizen science, amplicon sequence variants
 
@@ -182,7 +182,7 @@ Taxonomy assignment quality depends on the completeness and accuracy of the refe
 
 ## 6. SOFTWARE AVAILABILITY
 
-Relict is freely available under the MIT licence. The source code, documentation, benchmark scripts, and amplicon preset configurations are available at https://github.com/ShAuRyA-Noodle/Bad-Omens. The platform requires Docker and Docker Compose for deployment. Reference databases (SILVA 138.1, MIDORI2 GenBank 269) are downloaded via a version-pinned script with SHA256 verification. A `CITATION.cff` file is provided for software citation.
+Relict is freely available under the MIT licence. The source code, documentation, benchmark scripts, and amplicon preset configurations are available at https://github.com/ShAuRyA-Noodle/Relict. The platform requires Docker and Docker Compose for deployment. Reference databases (SILVA 138.1, MIDORI2 GenBank 269) are downloaded via a version-pinned script with SHA256 verification. A `CITATION.cff` file is provided for software citation.
 
 ---
 

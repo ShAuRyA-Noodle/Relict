@@ -201,7 +201,7 @@ def _generate_eml_xml(
     abstract = metadata.get(
         "abstract",
         "Environmental DNA (eDNA) metabarcoding survey processed by the "
-        "Relict platform (https://github.com/ShAuRyA-Noodle/Bad-Omens). "
+        "Relict platform (https://github.com/ShAuRyA-Noodle/Relict). "
         "Amplicon sequence variants (ASVs) were inferred using vsearch "
         "UNOISE3 and assigned taxonomy against version-pinned reference "
         f"databases. Pipeline version: {pipeline_version}.",

@@ -124,7 +124,7 @@ export const Footer = () => {
         <div className="w-full flex-grow flex flex-col items-center justify-end mx-auto relative px-4">
           <div className="flex flex-col sm:flex-row items-center w-full justify-between mb-8 border-b border-white/20 pb-4 mt-16 sm:mt-0">
             <div className="flex items-center space-x-6 text-gray-500">
-              <a href="https://github.com/ShAuRyA-Noodle/Bad-Omens" target="_blank" rel="noreferrer" className="hover:text-white hover:bg-white/10 p-2 border border-transparent hover:border-white/20 transition-all">
+              <a href="https://github.com/ShAuRyA-Noodle/Relict" target="_blank" rel="noreferrer" className="hover:text-white hover:bg-white/10 p-2 border border-transparent hover:border-white/20 transition-all">
                 <Github className="w-5 h-5" />
               </a>
               <a href="mailto:workwithshaurya10@gmail.com" className="hover:text-white hover:bg-white/10 p-2 border border-transparent hover:border-white/20 transition-all">
