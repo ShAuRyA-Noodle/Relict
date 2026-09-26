@@ -47,7 +47,7 @@ services:
     plan: starter
     rootDir: backend
     dockerfilePath: ./Dockerfile
-    healthCheckPath: /health
+    healthCheckPath: /ready
     autoDeploy: true
     envVars:
       - key: ENVIRONMENT

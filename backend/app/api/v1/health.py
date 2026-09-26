@@ -7,14 +7,13 @@
 
 ``/ready``
     Readiness — verifies Postgres, Redis, and MinIO are reachable.
-    Returns 200 with per-component status. This endpoint is fleshed
-    out in Phase 1f once the queue + storage services exist.
+    Returns 200 only when all components are available; otherwise 503.
 """
 from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 from pydantic import BaseModel
 from sqlalchemy import text
 
@@ -61,12 +60,11 @@ async def health() -> HealthResponse:
     status_code=status.HTTP_200_OK,
     summary="Readiness probe",
 )
-async def ready() -> ReadinessResponse:
+async def ready(response: Response) -> ReadinessResponse:
     """Readiness probe — verifies Postgres, Redis, and MinIO.
 
-    Always returns HTTP 200 with a per-component status map so dashboards
-    can parse it cheaply. Callers should inspect the ``status`` field
-    (``ok`` / ``degraded``) rather than the HTTP code.
+    Returns HTTP 503 when any required service is unavailable, so a load
+    balancer cannot mark an incomplete deployment ready for traffic.
     """
     checks: dict[str, dict[str, Any]] = {}
 
@@ -95,4 +93,6 @@ async def ready() -> ReadinessResponse:
         checks["minio"] = {"status": "fail", "error": str(exc)}
 
     overall = "ok" if all(c["status"] == "ok" for c in checks.values()) else "degraded"
+    if overall != "ok":
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     return ReadinessResponse(status=overall, checks=checks)
