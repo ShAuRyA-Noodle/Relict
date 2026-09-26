@@ -8,6 +8,7 @@ export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [time, setTime] = useState("");
   const location = useLocation();
+  const apiConfigured = Boolean(import.meta.env.VITE_API_BASE_URL);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -29,8 +30,8 @@ export const Header = () => {
     <header className="fixed top-0 w-full z-50 pointer-events-auto border-b border-white/10 bg-black/80 backdrop-blur-md scanline">
       {/* Top technical strip */}
       <div className="w-full bg-primary/10 border-b border-primary/20 py-1 px-4 flex justify-between items-center text-[10px] font-mono text-primary uppercase tracking-widest hidden md:flex">
-        <span>SYS.STATUS: <span className="animate-pulse">ONLINE</span></span>
-        <span>ENV: PRODUCTION // BIODIVERSITY_DB: CONNECTED</span>
+        <span>INTERFACE: <span className="animate-pulse">ONLINE</span></span>
+        <span>MODE: {import.meta.env.MODE} // API: {apiConfigured ? "CONFIGURED" : "UNCONFIGURED"}</span>
         <span>T: {time}</span>
       </div>
 
