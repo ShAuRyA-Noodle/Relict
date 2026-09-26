@@ -227,3 +227,6 @@ eDNA_Dump/
 
 # Vite temp files
 *.timestamp-*
+
+.vercel
+.env*

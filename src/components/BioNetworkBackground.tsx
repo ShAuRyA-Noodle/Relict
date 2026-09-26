@@ -56,17 +56,17 @@ const ParticleSwarm = () => {
     const mousePos = new THREE.Vector3().copy(camera.position).add(mouseVector.multiplyScalar(distance));
 
     particles.forEach((particle, i) => {
-      let { t, factor, speed, xFactor, yFactor, zFactor, baseX, baseY, baseZ } = particle;
+      const { speed, xFactor, yFactor, zFactor, baseX, baseY, baseZ } = particle;
 
       // Slowly drift the base position over time
-      t = particle.t += speed / 2;
+      const t = particle.t += speed / 2;
       const xNoise = Math.sin(t) * xFactor;
       const yNoise = Math.cos(t) * yFactor;
       const zNoise = Math.sin(t) * zFactor;
 
       let targetX = baseX + xNoise;
       let targetY = baseY + yNoise;
-      let targetZ = baseZ + zNoise;
+      const targetZ = baseZ + zNoise;
 
       // Mouse interaction: Repel particles
       const dx = targetX - mousePos.x;
@@ -77,8 +77,9 @@ const ParticleSwarm = () => {
       const repelRadius = 8;
       if (distToMouse < repelRadius) {
         const force = (repelRadius - distToMouse) / repelRadius;
-        targetX += (dx / distToMouse) * force * 5;
-        targetY += (dy / distToMouse) * force * 5;
+        const safeDistance = Math.max(distToMouse, 0.001);
+        targetX += (dx / safeDistance) * force * 5;
+        targetY += (dy / safeDistance) * force * 5;
       }
 
       // Smoothly interpolate current position toward target position
