@@ -46,12 +46,12 @@ from app.db.base import Base, Timestamped, UUIDPrimaryKey
 # ─── Enums ──────────────────────────────────────────────────────────────
 
 
-class UserRole(str, enum.Enum):
+class UserRole(enum.StrEnum):
     USER = "user"
     ADMIN = "admin"
 
 
-class JobStatus(str, enum.Enum):
+class JobStatus(enum.StrEnum):
     QUEUED = "queued"
     RUNNING = "running"
     SUCCEEDED = "succeeded"
@@ -59,7 +59,7 @@ class JobStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
-class Amplicon(str, enum.Enum):
+class Amplicon(enum.StrEnum):
     """Supported amplicon markers. New ones are opt-in per release."""
 
     MARKER_12S_MIFISH = "12S_MiFish"

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-
 from app.services.samples import UnsafeSampleFilename, _check_filename
 from app.services.storage import _sanitize_filename
 

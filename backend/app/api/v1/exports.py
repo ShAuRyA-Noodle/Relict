@@ -16,7 +16,15 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import CurrentUser, SessionDep
-from app.db.models import ASV, ConservationCache, DiversityMetric, Job, JobStatus, Provenance, Sample
+from app.db.models import (
+    ASV,
+    ConservationCache,
+    DiversityMetric,
+    Job,
+    JobStatus,
+    Provenance,
+    Sample,
+)
 from app.services.dwca import generate_dwca
 from app.services.report import generate_html_report
 
@@ -198,7 +206,7 @@ async def export_biom(
     sample_id = sample_obj.filename if sample_obj else str(job.id)
 
     rows = []
-    for i, asv in enumerate(asvs):
+    for asv in asvs:
         tax = asv.taxon
         lineage = ""
         if tax:
