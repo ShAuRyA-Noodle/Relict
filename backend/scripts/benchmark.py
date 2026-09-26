@@ -20,14 +20,12 @@ The benchmark validates:
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import math
-import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -83,7 +81,7 @@ def run_16s_known_composition() -> BenchmarkSuite:
             "sequences with equal abundance (20 reads each)."
         ),
         dataset="test_16s_v4.fastq",
-        timestamp=datetime.utcnow().isoformat() + "Z",
+        timestamp=datetime.now(UTC).isoformat(),
     )
 
     fastq = DEMO_DIR / "test_16s_v4.fastq"
@@ -227,11 +225,6 @@ def _run_pipeline_locally(fastq: Path) -> dict[str, Any] | None:
     This calls the real API endpoints — the Docker stack must be running.
     """
     import urllib.request
-    import ssl
-
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
 
     api = "http://localhost:8000/api/v1"
 
@@ -252,8 +245,6 @@ def _run_pipeline_locally(fastq: Path) -> dict[str, Any] | None:
     auth_header = {"Authorization": f"Bearer {token}"}
 
     try:
-        import http.client
-        import mimetypes
 
         boundary = "----RelictBenchmark"
         body = []
@@ -337,7 +328,7 @@ def generate_report(suites: list[BenchmarkSuite]) -> str:
     lines = [
         "# Relict Benchmark Report",
         "",
-        f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}",
+        f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}",
         "",
     ]
 
@@ -388,11 +379,10 @@ def main() -> int:
 
     suites: list[BenchmarkSuite] = []
 
-    if not args.report:
-        if not args.only or args.only == "16s_known":
-            print("\n[1/1] 16S V4 Known Composition Benchmark")
-            suite = run_16s_known_composition()
-            suites.append(suite)
+    if not args.report and (not args.only or args.only == "16s_known"):
+        print("\n[1/1] 16S V4 Known Composition Benchmark")
+        suite = run_16s_known_composition()
+        suites.append(suite)
 
     report = generate_report(suites)
     print("\n" + report)

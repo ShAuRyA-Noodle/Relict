@@ -24,25 +24,26 @@ import hashlib
 import json
 import shutil
 import uuid
+from contextlib import suppress
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.db.models import ASV, ConservationCache, DiversityMetric, Job, JobStatus, Sample, Taxon
 from app.services.queue import publish_job_event_sync
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+
 from worker import PIPELINE_VERSION, TOOL_VERSIONS
 from worker.pipeline import StageError
 from worker.pipeline import conservation as conservation_stage
 from worker.pipeline import denoise_vsearch as denoise_stage
-from worker.pipeline import provenance as provenance_stage
 from worker.pipeline import dereplicate as derep_stage
 from worker.pipeline import diversity as diversity_stage
 from worker.pipeline import ordination as ordination_stage
+from worker.pipeline import provenance as provenance_stage
 from worker.pipeline import qc as qc_stage
 from worker.pipeline import taxonomy as tax_stage
 
@@ -459,10 +460,8 @@ def _read_fasta_with_sizes(fasta: Path) -> dict[str, tuple[str, int]]:
                 current_size = 1
                 for part in header.split(";"):
                     if part.startswith("size="):
-                        try:
+                        with suppress(ValueError, IndexError):
                             current_size = int(part.split("=")[1])
-                        except (ValueError, IndexError):
-                            pass
                 current_seq = []
             elif current_id:
                 current_seq.append(line.upper())

@@ -238,7 +238,7 @@ export const DemoUpload = () => {
           isProcessing && "pointer-events-none opacity-50"
         )}
       >
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none" />
         <input {...getInputProps()} />
         
         <div className="relative z-10 flex flex-col items-center">

@@ -143,6 +143,19 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106", "PLR2004"]
 "app/db/migrations/**" = ["N806", "N999"]
+# The benchmark targets a fixed localhost API. Its long request sequence is
+# deliberately kept in one function so timed stages run in order.
+"scripts/benchmark.py" = ["S310", "PLR0915"]
+# Reference URLs are required to be HTTPS before either downloader runs.
+# External tools are resolved from PATH and receive fixed argv lists, no shell.
+"scripts/download_references.py" = ["S310", "S603"]
+# Bioinformatics stages invoke fixed tools with argument arrays (shell=False).
+"worker/pipeline/denoise_vsearch.py" = ["S603"]
+"worker/pipeline/dereplicate.py" = ["S603"]
+"worker/pipeline/qc.py" = ["S603"]
+"worker/pipeline/taxonomy.py" = ["S603"]
+# The job state machine is intentionally a single transaction boundary.
+"worker/pipeline/run_job.py" = ["PLR0915"]
 
 [tool.ruff.format]
 quote-style = "double"

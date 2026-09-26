@@ -165,27 +165,35 @@ def save_versions(versions: dict[str, dict[str, str]]) -> None:
 
 def download_file(url: str, dest: Path) -> None:
     """Download using curl (handles Windows TLS natively) with a progress bar."""
+    if not url.startswith("https://"):
+        raise ValueError("Reference database downloads require HTTPS")
     print(f"  Downloading {url}")
     print(f"  -> {dest}")
     dest.parent.mkdir(parents=True, exist_ok=True)
 
     # Prefer curl — it uses the OS certificate store (Schannel on Windows)
     # which avoids the SSL cert errors that Python's urllib often hits.
-    result = subprocess.run(
-        ["curl", "-fSL", "--progress-bar", "-o", str(dest), url],
-        check=False,
-    )
-    if result.returncode != 0:
+    curl_path = shutil.which("curl")
+    if curl_path:
+        result = subprocess.run(
+            [curl_path, "-fSL", "--proto", "=https", "--proto-redir", "=https", "--progress-bar", "-o", str(dest), url],
+            check=False,
+        )
+    if not curl_path or result.returncode != 0:
         # Fallback to Python urllib if curl is not available
         print("  curl failed, falling back to urllib...")
-        import ssl
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
+
+        class HTTPSOnlyRedirect(urllib.request.HTTPRedirectHandler):
+            # Signature is fixed by urllib's handler interface.
+            def redirect_request(self, request, fp, code, msg, headers, newurl):  # noqa: PLR0917
+                if not newurl.startswith("https://"):
+                    raise ValueError("Reference database redirect requires HTTPS")
+                return super().redirect_request(request, fp, code, msg, headers, newurl)
+
+        opener = urllib.request.build_opener(HTTPSOnlyRedirect())
         req = urllib.request.Request(url, headers={"User-Agent": "Relict/0.1.0"})
-        with urllib.request.urlopen(req, timeout=600, context=ctx) as resp:  # noqa: S310
-            with open(dest, "wb") as out:
-                shutil.copyfileobj(resp, out)
+        with opener.open(req, timeout=600) as resp, open(dest, "wb") as out:
+            shutil.copyfileobj(resp, out)
 
     size_mb = dest.stat().st_size / 1024 / 1024
     print(f"  Downloaded: {size_mb:.1f} MB")
@@ -236,9 +244,12 @@ def build_vsearch_udb(fasta: Path) -> Path:
     print(f"  Building vsearch UDB index: {udb.name}")
     print("  (This may take 5-30 minutes for large databases like SILVA)")
 
+    vsearch_path = shutil.which("vsearch")
+    if not vsearch_path:
+        raise FileNotFoundError("vsearch is required to build the reference index")
     result = subprocess.run(
         [
-            "vsearch",
+            vsearch_path,
             "--makeudb_usearch", str(fasta),
             "--output", str(udb),
         ],
@@ -282,7 +293,7 @@ def process_db(key: str, db: RefDB, versions: dict[str, dict[str, str]], *, forc
             print(f"  WARNING: SHA256 mismatch! Expected {pinned[:16]}..., got {current_sha[:16]}...")
             print("  Re-downloading...")
         else:
-            print(f"  File exists but no pinned SHA256. Recording current digest.")
+            print("  File exists but no pinned SHA256. Recording current digest.")
             versions[key] = {
                 "name": db.name,
                 "sha256_decompressed": current_sha,
