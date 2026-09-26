@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { Copy, Terminal, Server, Cpu } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { motion, useScroll } from "framer-motion";
 
 const pipelineSteps = [
   {
@@ -74,40 +73,28 @@ export const HowItWorksSection = () => {
           </div>
 
           <div className="space-y-24 sm:space-y-32">
-            {pipelineSteps.map((step, index) => {
-              // We reveal the nodes based on scroll depth
-              const isActive = useTransform(
-                scrollYProgress,
-                [0, Math.min(1, index * 0.25), Math.min(1, (index + 0.5) * 0.25)],
-                [0, 0, 1]
-              );
-
-              const yOffset = useTransform(
-                scrollYProgress,
-                [0, Math.min(1, index * 0.25), Math.min(1, (index + 0.5) * 0.25)],
-                [50, 50, 0]
-              );
-
-              return (
+            {pipelineSteps.map((step) => (
                 <div key={step.id} className="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8">
                   {/* The Node Connection Point */}
                   <motion.div
                     className="absolute -left-[30px] sm:-left-[46px] top-6 w-[30px] h-[30px] rounded-sm border-2 bg-background flex items-center justify-center z-20"
-                    style={{
-                      borderColor: useTransform(isActive, (v) => v > 0.5 ? "hsl(var(--primary))" : "rgba(255,255,255,0.2)"),
-                    }}
+                    initial={{ borderColor: "rgba(255,255,255,0.2)" }}
+                    whileInView={{ borderColor: "hsl(var(--primary))" }}
+                    viewport={{ once: true, amount: 0.5 }}
                   >
                     <motion.div
                       className="w-[10px] h-[10px]"
-                      style={{
-                        backgroundColor: useTransform(isActive, (v) => v > 0.5 ? "hsl(var(--primary))" : "transparent"),
-                      }}
+                      initial={{ backgroundColor: "transparent" }}
+                      whileInView={{ backgroundColor: "hsl(var(--primary))" }}
+                      viewport={{ once: true, amount: 0.5 }}
                     />
                   </motion.div>
 
                   {/* Step ID / Execution Context */}
                   <motion.div
-                    style={{ opacity: isActive, y: yOffset }}
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
                     className="font-mono text-sm"
                   >
                     <div className="text-gray-500 mb-1">[{step.id}]</div>
@@ -120,7 +107,9 @@ export const HowItWorksSection = () => {
 
                   {/* Terminal Execution Window */}
                   <motion.div
-                    style={{ opacity: isActive, y: yOffset }}
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
                     className="w-full"
                   >
                     <div className="border border-white/20 bg-black text-xs font-mono w-full shadow-[0_0_15px_rgba(0,0,0,1)]">
@@ -157,8 +146,7 @@ export const HowItWorksSection = () => {
                   </motion.div>
 
                 </div>
-              );
-            })}
+            ))}
           </div>
         </div>
       </div>

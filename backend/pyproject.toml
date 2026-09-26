@@ -58,11 +58,14 @@ dependencies = [
 dev = [
     # ─── Test ───────────────────────────────────────────────────────
     "pytest>=9.0.3",
-    "pytest-asyncio==0.26.0",
+    "pytest-asyncio==1.4.0",
     "pytest-cov==6.3.0",
     "pytest-mock==3.15.1",
     "httpx==0.28.1",                      # also used by TestClient
-    "testcontainers[postgres,redis,minio]==4.14.2",
+    "httpx2==2.13.1",                     # Starlette 1.x TestClient transport
+    # RedisContainer needs the module, which works with our pinned redis 5 client;
+    # the testcontainers redis extra would force an incompatible redis >=7.
+    "testcontainers[postgres,minio]==4.14.2",
     "faker==33.3.1",                      # only for test fixtures — never for prod data
 
     # ─── Lint / type / format ───────────────────────────────────────

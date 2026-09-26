@@ -56,7 +56,7 @@ class TestAccessToken:
         with pytest.raises(jwt.InvalidSignatureError):
             jwt.decode(
                 token,
-                "definitely-not-the-real-secret",
+                "definitely-not-the-real-secret-at-all",
                 algorithms=[settings.JWT_ALGORITHM],
             )
 

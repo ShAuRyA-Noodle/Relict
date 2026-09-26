@@ -50,7 +50,39 @@ export const DemoUpload = () => {
   useEffect(() => {
     if (!jobId) return;
     const ws = createJobWebSocket(jobId);
-    if (!ws) return;
+    let pollInterval: ReturnType<typeof setInterval> | undefined;
+    let completed = false;
+
+    const startPolling = () => {
+      if (completed || pollInterval) return;
+      pollInterval = setInterval(async () => {
+        try {
+          const job = await getJob(jobId);
+          if (job.status === "succeeded" || job.status === "failed") {
+            completed = true;
+            setJobStatus(job.status);
+            setIsProcessing(false);
+            if (job.status === "succeeded") {
+              toast({ title: "Analysis complete" });
+            } else {
+              setError(job.error_message || "Pipeline failed");
+            }
+            clearInterval(pollInterval);
+            pollInterval = undefined;
+          }
+        } catch {
+          setStageMessage("Live updates unavailable; retrying status check...");
+        }
+      }, 3000);
+    };
+
+    if (!ws) {
+      startPolling();
+      return () => {
+        completed = true;
+        if (pollInterval) clearInterval(pollInterval);
+      };
+    }
 
     ws.onmessage = (event) => {
       try {
@@ -62,38 +94,33 @@ export const DemoUpload = () => {
           setStageMessage(data.message);
         }
         if (data.kind === "job.succeeded") {
+          completed = true;
           setJobStatus("succeeded");
           setIsProcessing(false);
           toast({ title: "Analysis complete", description: "View your results" });
         }
         if (data.kind === "job.failed") {
+          completed = true;
           setJobStatus("failed");
           setIsProcessing(false);
           setError(data.message || "Pipeline failed");
         }
-      } catch {}
+      } catch {
+        setStageMessage("Received an invalid status update; retrying...");
+        startPolling();
+      }
     };
 
-    ws.onerror = () => {
-      const pollInterval = setInterval(async () => {
-        try {
-          const job = await getJob(jobId);
-          if (job.status === "succeeded" || job.status === "failed") {
-            setJobStatus(job.status);
-            setIsProcessing(false);
-            if (job.status === "succeeded") {
-              toast({ title: "Analysis complete" });
-            } else {
-              setError(job.error_message || "Pipeline failed");
-            }
-            clearInterval(pollInterval);
-          }
-        } catch {}
-      }, 3000);
-      return () => clearInterval(pollInterval);
-    };
+    ws.onerror = startPolling;
+    ws.onclose = startPolling;
 
-    return () => { ws.close(); };
+    return () => {
+      completed = true;
+      ws.onerror = null;
+      ws.onclose = null;
+      ws.close();
+      if (pollInterval) clearInterval(pollInterval);
+    };
   }, [jobId, toast]);
 
   const onDrop = useCallback(

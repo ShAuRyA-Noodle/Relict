@@ -11,6 +11,12 @@
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
 const API_V1 = `${API_BASE}/api/v1`;
 
+function requireBackend(): void {
+  if (import.meta.env.PROD && !API_BASE) {
+    throw new Error("Analysis backend is not configured. Set VITE_API_BASE_URL to the live API origin and redeploy.");
+  }
+}
+
 // ─── Token management ─────────────────────────────────────────────
 
 let accessToken: string | null = null;
@@ -37,6 +43,7 @@ function authHeaders(): Record<string, string> {
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  requireBackend();
   const res = await fetch(`${API_V1}${path}`, {
     ...init,
     headers: {
@@ -47,6 +54,9 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: { message: res.statusText } }));
     throw new Error(body?.error?.message || body?.detail || `API error ${res.status}`);
+  }
+  if (!res.headers.get("content-type")?.includes("application/json")) {
+    throw new Error("The backend returned a non-JSON response. Check VITE_API_BASE_URL and the backend deployment.");
   }
   return res.json();
 }
@@ -211,6 +221,7 @@ export function logout() {
 // ─── Samples ──────────────────────────────────────────────────────
 
 export async function uploadSample(file: File): Promise<{ sample: SamplePublic; download_url: string }> {
+  requireBackend();
   const form = new FormData();
   form.append("file", file);
   const res = await fetch(`${API_V1}/samples/upload`, {
@@ -221,6 +232,9 @@ export async function uploadSample(file: File): Promise<{ sample: SamplePublic; 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body?.detail || body?.error?.message || `Upload failed: ${res.status}`);
+  }
+  if (!res.headers.get("content-type")?.includes("application/json")) {
+    throw new Error("The backend returned a non-JSON response. Check VITE_API_BASE_URL and the backend deployment.");
   }
   return res.json();
 }
@@ -282,6 +296,7 @@ export function getReportUrl(jobId: string): string {
 }
 
 export async function downloadExport(url: string, filename: string) {
+  requireBackend();
   const res = await fetch(url, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Export failed: ${res.status}`);
   const blob = await res.blob();
@@ -295,7 +310,11 @@ export async function downloadExport(url: string, filename: string) {
 // ─── Health ───────────────────────────────────────────────────────
 
 export async function checkHealth(): Promise<{ status: string; version: string }> {
+  requireBackend();
   const res = await fetch(`${API_BASE}/health`);
+  if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
+    throw new Error("Backend health check failed. Check VITE_API_BASE_URL and the backend deployment.");
+  }
   return res.json();
 }
 
@@ -303,7 +322,7 @@ export async function checkHealth(): Promise<{ status: string; version: string }
 
 export function createJobWebSocket(jobId: string): WebSocket | null {
   const token = getAccessToken();
-  if (!token) return null;
+  if (!token || (import.meta.env.PROD && !API_BASE)) return null;
   // If VITE_API_BASE_URL is set (prod), derive the ws host from it so
   // WebSocket traffic reaches the Render backend instead of Vercel.
   // Otherwise fall back to the current origin (dev + ngrok path).
