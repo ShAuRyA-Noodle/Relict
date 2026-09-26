@@ -19,7 +19,7 @@ keywords = [
 dependencies = [
     # ─── Web framework ──────────────────────────────────────────────
     "fastapi==0.141.1",
-    "uvicorn[standard]==0.52.4",
+    "uvicorn[standard]==0.53.0",
     "python-multipart>=0.0.27",         # multipart/form-data uploads — CVE chain in <0.0.27
     "websockets==14.2",                  # for FastAPI WebSocket
 
@@ -29,10 +29,10 @@ dependencies = [
     "email-validator==2.3.0",
 
     # ─── Database (async) ───────────────────────────────────────────
-    "sqlalchemy[asyncio]==2.0.52",
+    "sqlalchemy[asyncio]==2.0.54",
     "asyncpg==0.31.0",                   # async Postgres driver
-    "alembic==1.19.1",
-    "psycopg[binary]==3.3.5",            # sync driver for Alembic
+    "alembic==1.20.0",
+    "psycopg[binary]==3.3.6",            # sync driver for Alembic
 
     # ─── Object storage (S3 / MinIO) ────────────────────────────────
     "minio==7.2.20",
@@ -69,7 +69,7 @@ dev = [
     "faker==33.3.1",                      # only for test fixtures — never for prod data
 
     # ─── Lint / type / format ───────────────────────────────────────
-    "ruff==0.16.6",
+    "ruff==0.16.8",
     "mypy==1.20.2",
     "types-redis==4.6.0.20241004",
 ]
