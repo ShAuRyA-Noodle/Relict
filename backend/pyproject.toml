@@ -20,7 +20,7 @@ dependencies = [
     # ─── Web framework ──────────────────────────────────────────────
     "fastapi==0.141.1",
     "uvicorn[standard]==0.53.0",
-    "python-multipart>=0.0.27",         # multipart/form-data uploads — CVE chain in <0.0.27
+    "python-multipart>=0.0.32",         # multipart/form-data uploads — CVE chain in <0.0.27
     "websockets==14.2",                  # for FastAPI WebSocket
 
     # ─── Configuration & validation ─────────────────────────────────
